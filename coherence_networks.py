@@ -2,7 +2,8 @@
 
 # Import packages
 import random
-import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class CoherenceNetworks:
 
@@ -16,11 +17,11 @@ class CoherenceNetworks:
         """
 
         self.n_nodes = number_nodes
-        self.a_edges = amount_edges
+        self.n_edges = amount_edges
         self.a_constraint_p = amount_positive_constraints
 
         # Transform the amount of edges into a randomly chosen number of edges of the associated range
-        self.n_edges = self.number_edges()
+        #self.n_edges = self.number_edges()
 
     def number_edges(self):
         """
@@ -37,28 +38,27 @@ class CoherenceNetworks:
 
         return n_edges
 
-    def edges(self):
+    def create_graph(self):
         """
-        Create edges between the nodes.
-        :return: array; array containing arrays of two nodes that get connected by an edge
-        """
-
-        # First, you want to create random edges so that every node is connected to another one
-
-        # Make sure that all nodes are connected as a network
-
-        # Add leftover edges
-
-        edges = np.array([[0, 1],[]])
-
-        return edges
-
-    def constraints(self):
-        """
-        Divide the edges into sets of positive and negative constraints.
-        :return: array; two arrays containing the positive and negative constraints (edges)
+        Create a graph based on the number of nodes and amount of edges.
+        :return: graph; a graph with the specified number of nodes and edges and added constraints.
         """
 
+        # Create a random graph with n_nodes nodes and n_edges edges
+        graph = nx.gnm_random_graph(self.n_nodes, self.n_edges)
+
+        # Add positive or negative constraints to edges
+        constraints = random.choices(["positive", "negative"], k=graph.number_of_edges())
+        nx.set_edge_attributes(graph, constraints, "constraint")
+        colours = ["green" if x == "positive" else "red" for x in constraints]
+
+        nx.draw(graph, edge_color=colours, with_labels=True)
+        plt.show()
+
+        return graph
+
+if __name__ == '__main__':
+    CoherenceNetworks(10, 15, 4).create_graph()
 
 
 
