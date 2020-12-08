@@ -68,6 +68,10 @@ class CoherenceNetworks:
         # Create a random graph with n_nodes nodes and n_edges edges
         graph = nx.gnm_random_graph(self.n_nodes, self.n_edges)
 
+        # Make sure that the graph is connected (meaning no separate graphs)
+        while nx.is_connected(graph) == False:
+            graph = nx.gnm_random_graph(self.n_nodes, self.n_edges)
+
         # Add positive or negative constraints to edges
         constraints = random.choices(["positive", "negative"], weights= [self.prob_pos_edges, 100-self.prob_pos_edges],
                                      k=graph.number_of_edges())
@@ -83,7 +87,7 @@ class CoherenceNetworks:
         return graph
 
 if __name__ == '__main__':
-    CoherenceNetworks(10, 'high', 'high').create_graph()
+    CoherenceNetworks(10, 'low', 'high').create_graph()
 
 
 
