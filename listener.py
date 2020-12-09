@@ -22,25 +22,56 @@ class BeliefRevision:
         self.network_history = belief_network
 
     def inferring(self):
+        """
+        Make inferences that maximise coherence after new node(s) have been communicated.
+        :return: graph; the new belief network
+        """
 
         return belief_network
 
     def coherence(self):
+        """
+        Calculate the coherence of a belief network.
+        :return: float; the coherence of a belief network
+        """
 
         return coherence
 
 class TroubleIdentification:
 
-    def __init__(self, belief_network, node_type, node_truth_value, coherence_previous):
+    def __init__(self, coherence, coherence_previous):
         """
         Initialisation of class.
-        :param belief_network: graph; the graph containing the relevant nodes connected by edges with their constraints
-        :param node_type: list; a list containing the types of all the nodes in the network
-        :param node_truth_value: list; a list containing the truth values of (some of) the nodes in the network
+        :param coherence: float; the coherence of the current belief network
         :param coherence_previous: float; the coherence of the previous belief network (before the last nodes that were
         communicated)
         """
 
+    def trouble_identification(self):
+        """
+        Compares the coherence of the current belief network with the previous one (before last communicated node(s)).
+        :return: boolean; whether to initiate repair or not
+        """
+
 class RequestFormulation:
 
-    def __init__(self):
+    def __init__(self, belief_network):
+        """
+        Initialisation of class.
+        :param belief_network: the current belief network
+        """
+
+    def formulate_request(self):
+        """
+        Decide which node(s) to include into the restricted offer, based on the truth value flip(s) that results in the
+        highest coherence.
+        :return: list; the node(s) included in the restricted offer
+        """
+
+    def coherence(self):
+        """
+        Calculate the coherence of a belief network.
+        :return: float; the coherence of a belief network
+        """
+
+        return coherence
