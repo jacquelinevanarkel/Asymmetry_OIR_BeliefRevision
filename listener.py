@@ -1,5 +1,4 @@
 # Import packages
-import numpy as np
 import networkx as nx
 
 class BeliefRevision:
@@ -13,9 +12,9 @@ class BeliefRevision:
         """
 
         # Initialise the different sets of nodes (own, communicated, inferred)
-        self.nodes_own = np.array(own)
-        self.nodes_comm = np.array(communicated)
-        self.nodes_inf = np.array(inferred)
+        self.belief_network = belief_network
+        self.node_type = node_type
+        self.node_truth_value = node_truth_value
 
         # Initialise a network history, which stores the network one time step back (so before the belief revision takes
         # place)
