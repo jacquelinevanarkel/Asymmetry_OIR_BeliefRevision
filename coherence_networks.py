@@ -35,7 +35,7 @@ class CoherenceNetworks:
         elif self.a_edges == "middle":
             n_edges = random.randrange(1.5*self.n_nodes, 2.5*self.n_nodes)
         elif self.a_edges == "high":
-            n_edges = random.randrange(2.5*self.n_nodes, 4*self.n_nodes)
+            n_edges = random.randrange(2.5*self.n_nodes, self.n_nodes*(self.n_nodes-1)/2)
         else:
             raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
 
@@ -87,7 +87,7 @@ class CoherenceNetworks:
         return graph
 
 if __name__ == '__main__':
-    CoherenceNetworks(10, 'low', 'high').create_graph()
+    CoherenceNetworks(10, 'high', 'high').create_graph()
 
 
 

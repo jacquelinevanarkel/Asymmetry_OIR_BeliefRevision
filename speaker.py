@@ -20,6 +20,14 @@ class SpeakerModel:
         :return: list; the truth values of a (set of) node(s) to be communicated
         """
 
+        # https://docs.python.org/3/library/itertools.html --> look at subsets enumereren
+
+    def belief_revision(self):
+        """
+        Make inferences based on own and communicated beliefs (same function as for listener).
+        :return: list; the truth values of a set of inferred nodes
+        """
+
     def repair_solution(self):
         """
         Confirm/disconfirm the restricted offer and add clarification if needed.
