@@ -29,7 +29,6 @@ class CoherenceNetworks:
         Take the amount of edges (low, middle, high) and turn it into a number of edges.
         :return: int; number of edges
         """
-
         if self.a_edges == "low":
             n_edges = random.randrange(self.n_nodes-1, 1.5*self.n_nodes)
         elif self.a_edges == "middle":

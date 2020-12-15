@@ -20,6 +20,9 @@ class ListenerModel:
         # place)
         self.network_history = belief_network
 
+        # Add the truth values to the nodes in the belief network
+        nx.set_node_attributes(self.belief_network, node_truth_value, "truth_value")
+
     def belief_revision(self):
         """
         Make inferences that maximise coherence after new node(s) have been communicated.
@@ -33,6 +36,21 @@ class ListenerModel:
         Calculate the coherence of a belief network.
         :return: float; the coherence of a belief network
         """
+
+        # Initialise coherence
+        coherence = 0
+
+        for edge in list(self.belief_network.edges_iter(data='constraint', default=1)):
+            if edge[2] == 'positive':
+                if self.belief_network.nodes(edge[0]) == self.belief_network.nodes(edge[1]):
+                    coherence += 1
+                else:
+                    coherence -= 1
+            elif edge[2] == 'negative':
+                if self.belief_network.nodes(edge[0]) == self.belief_network.nodes(edge[1]):
+                    coherence -= 1
+                else:
+                    coherence += 1
 
         return coherence
 
