@@ -30,11 +30,11 @@ class CoherenceNetworks:
         :return: int; number of edges
         """
         if self.a_edges == "low":
-            n_edges = random.randrange(self.n_nodes-1, 1.5*self.n_nodes)
+            n_edges = random.randrange(self.n_nodes-1, int(1.5*self.n_nodes))
         elif self.a_edges == "middle":
-            n_edges = random.randrange(1.5*self.n_nodes, 2.5*self.n_nodes)
+            n_edges = random.randrange(int(1.5*self.n_nodes), int(2.5*self.n_nodes))
         elif self.a_edges == "high":
-            n_edges = random.randrange(2.5*self.n_nodes, self.n_nodes*(self.n_nodes-1)/2)
+            n_edges = random.randrange(int(2.5*self.n_nodes), int(self.n_nodes*(self.n_nodes-1)/2))
         else:
             raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
 
@@ -74,7 +74,13 @@ class CoherenceNetworks:
         # Add positive or negative constraints to edges
         constraints = random.choices(["positive", "negative"], weights= [self.prob_pos_edges, 100-self.prob_pos_edges],
                                      k=graph.number_of_edges())
-        nx.set_edge_attributes(graph, constraints, "constraint")
+        i = 0
+        for edge in list(graph.edges()):
+            graph[edge[0]][edge[1]]["constraint"] = constraints[i]
+            i += 1
+        # print(constraints)
+        # print(graph.edges(data=True))
+        # nx.set_edge_attributes(graph, constraints, "constraint")
         # print("Prob pos edges: ", self.prob_pos_edges)
         # print("Number of edges: ", self.n_edges)
 
@@ -86,7 +92,7 @@ class CoherenceNetworks:
         return graph
 
 if __name__ == '__main__':
-    CoherenceNetworks(10, 'high', 'high').create_graph()
+    CoherenceNetworks(5, 'middle', 'middle').create_graph()
 
 
 

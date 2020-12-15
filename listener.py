@@ -1,5 +1,6 @@
 # Import packages
 import networkx as nx
+from coherence_networks import CoherenceNetworks
 
 class ListenerModel:
 
@@ -21,7 +22,9 @@ class ListenerModel:
         self.network_history = belief_network
 
         # Add the truth values to the nodes in the belief network
-        nx.set_node_attributes(self.belief_network, node_truth_value, "truth_value")
+        for i in range(len(node_truth_value)):
+            self.belief_network.nodes[i]['truth_value'] = node_truth_value[i]
+        # print(self.belief_network.nodes(data=True))
 
     def belief_revision(self):
         """
@@ -40,18 +43,18 @@ class ListenerModel:
         # Initialise coherence
         coherence = 0
 
-        for edge in list(self.belief_network.edges_iter(data='constraint', default=1)):
+        for edge in list(self.belief_network.edges(data='constraint')):
             if edge[2] == 'positive':
-                if self.belief_network.nodes(edge[0]) == self.belief_network.nodes(edge[1]):
+                if self.belief_network.nodes[edge[0]]['truth_value'] == self.belief_network.nodes[edge[1]]['truth_value']:
                     coherence += 1
                 else:
                     coherence -= 1
             elif edge[2] == 'negative':
-                if self.belief_network.nodes(edge[0]) == self.belief_network.nodes(edge[1]):
+                if self.belief_network.nodes[edge[0]]['truth_value'] == self.belief_network.nodes[edge[1]]['truth_value']:
                     coherence -= 1
                 else:
                     coherence += 1
-
+        # print("Coherence = ", coherence)
         return coherence
 
     def trouble_identification(self):
@@ -66,3 +69,7 @@ class ListenerModel:
         highest coherence.
         :return: list; the node(s) included in the restricted offer
         """
+
+if __name__ == '__main__':
+    belief_network = CoherenceNetworks(5, 'middle', 'middle').create_graph()
+    ListenerModel(belief_network, [None, None, None, None, None], [False, True, True, False, False]).coherence()
