@@ -1,6 +1,7 @@
 # Import packages
 import networkx as nx
 from coherence_networks import CoherenceNetworks
+import random
 
 class ListenerModel:
 
@@ -21,9 +22,10 @@ class ListenerModel:
         # place)
         self.network_history = belief_network
 
-        # Add the truth values to the nodes in the belief network
+        # Add the truth values and the type to the nodes in the belief network
         for i in range(len(node_truth_value)):
-            self.belief_network.nodes[i]['truth_value'] = node_truth_value[i]
+            self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
+            self.belief_network.nodes[i]['type'] = self.node_type[i]
         # print(self.belief_network.nodes(data=True))
 
     def belief_revision(self):
@@ -31,6 +33,32 @@ class ListenerModel:
         Make inferences that maximise coherence after new node(s) have been communicated.
         :return: graph; the new belief network
         """
+
+        gain_coherence = []
+        for node in self.belief_network.nodes(data=True):
+            # print(node)
+            if node[1]['type'] == None or node[1]['type'] == 'inf':
+                if node[1]['truth_value'] == None:
+                    node[1]['truth_value'] = random.choice([True, False])
+                print(self.belief_network.nodes(data=True))
+                # Greedy algorithm?
+                coherence = self.coherence()
+                node[1]['truth_value'] = not node[1]['truth_value']
+                # print(self.belief_network.nodes(data=True))
+                coherence_new = self.coherence()
+                gain_coherence.append((node[0], coherence_new - coherence))
+                node[1]['truth_value'] = not node[1]['truth_value']
+                # print("Coherence= ", coherence)
+                # print("Coherence new = ", coherence_new)
+                # if coherence_new <= coherence:
+                #     node[1]['truth_value'] = not node[1]['truth_value']
+        print(self.belief_network.nodes(data=True))
+        print(gain_coherence)
+        node_flipped = max(gain_coherence, key=lambda x: x[1])
+        print(node_flipped)
+        if node_flipped[1] > 0:
+            self.belief_network.nodes[node_flipped[0]]['truth_value'] = not self.belief_network.nodes[node_flipped[0]]['truth_value']
+        print(self.belief_network.nodes(data=True))
 
         return belief_network
 
@@ -72,4 +100,5 @@ class ListenerModel:
 
 if __name__ == '__main__':
     belief_network = CoherenceNetworks(5, 'middle', 'middle').create_graph()
-    ListenerModel(belief_network, [None, None, None, None, None], [False, True, True, False, False]).coherence()
+    # ListenerModel(belief_network, ['own', 'own', 'com', None, None], [False, True, True, False, False]).coherence()
+    ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf'], [False, True, True, False, False]).belief_revision()
