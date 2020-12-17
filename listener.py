@@ -28,11 +28,11 @@ class ListenerModel:
         for i in range(len(node_truth_value)):
             self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
             self.belief_network.nodes[i]['type'] = self.node_type[i]
+        nx.set_node_attributes(self.belief_network, False, "repair")
 
     def belief_revision(self):
         """
         Make inferences that maximise coherence after new node(s) have been communicated.
-        :return: graph; the new belief network
         """
 
         # Store the coherence of the network before the belief revision has taken place
@@ -82,7 +82,7 @@ class ListenerModel:
                 self.belief_network.nodes[node_flipped[0]]['truth_value'] = \
                     not self.belief_network.nodes[node_flipped[0]]['truth_value']
 
-        return belief_network
+        self.trouble_identification()
 
     def coherence(self):
         """
@@ -137,7 +137,7 @@ class ListenerModel:
             for node in self.belief_network.nodes(data=True):
 
                 # Only flip inferred nodes and nodes without a type yet
-                if node[1]['type'] == 'own' or node[1]['type'] == 'inf':
+                if (node[1]['type'] == 'own' or node[1]['type'] == 'inf') and node[1]['repair'] == False:
 
                     # Calculate the coherence before the node is flipped
                     coherence = self.coherence()
@@ -156,11 +156,13 @@ class ListenerModel:
             node_flipped = max(gain_coherence, key=lambda x: x[1])
             if node_flipped[1] > 0:
                 repair_initiation.append(node_flipped[0])
+                self.belief_network.nodes[node_flipped[0]]['repair'] = True
+
         print("repair:", repair_initiation)
         return repair_initiation
 
 if __name__ == '__main__':
-    belief_network = CoherenceNetworks(5, 'middle', 'middle').create_graph()
+    belief_network = CoherenceNetworks(10, 'middle', 'middle').create_graph()
     # ListenerModel(belief_network, ['own', 'own', 'com', None, None], [False, True, True, False, False]).coherence()
     # ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf'], [False, True, True, True, False]).belief_revision()
-    ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf'], [False, True, True, True, False]).formulate_request()
+    ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'], [False, True, True, True, False, False, True, True, True, False]).formulate_request()
