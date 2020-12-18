@@ -3,6 +3,7 @@ import random
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
 class CoherenceNetworks:
 
     def __init__(self, number_nodes, amount_edges, amount_positive_constraints):
@@ -30,11 +31,11 @@ class CoherenceNetworks:
         :return: int; number of edges
         """
         if self.a_edges == "low":
-            n_edges = random.randrange(self.n_nodes-1, int(1.5*self.n_nodes))
+            n_edges = random.randrange(self.n_nodes - 1, int(1.5 * self.n_nodes))
         elif self.a_edges == "middle":
-            n_edges = random.randrange(int(1.5*self.n_nodes), int(2.5*self.n_nodes))
+            n_edges = random.randrange(int(1.5 * self.n_nodes), int(2.5 * self.n_nodes))
         elif self.a_edges == "high":
-            n_edges = random.randrange(int(2.5*self.n_nodes), int(self.n_nodes*(self.n_nodes-1)/2))
+            n_edges = random.randrange(int(2.5 * self.n_nodes), int(self.n_nodes * (self.n_nodes - 1) / 2))
         else:
             raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
 
@@ -72,7 +73,7 @@ class CoherenceNetworks:
             graph = nx.gnm_random_graph(self.n_nodes, self.n_edges)
 
         # Add positive or negative constraints to edges
-        constraints = random.choices(["positive", "negative"], weights= [self.prob_pos_edges, 100-self.prob_pos_edges],
+        constraints = random.choices(["positive", "negative"], weights=[self.prob_pos_edges, 100 - self.prob_pos_edges],
                                      k=graph.number_of_edges())
         i = 0
         for edge in list(graph.edges()):
@@ -91,9 +92,6 @@ class CoherenceNetworks:
 
         return graph
 
+
 if __name__ == '__main__':
     CoherenceNetworks(5, 'middle', 'middle').create_graph()
-
-
-
-
