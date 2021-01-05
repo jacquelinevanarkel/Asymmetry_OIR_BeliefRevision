@@ -34,10 +34,24 @@ class SpeakerModel:
         """
 
         # https://docs.python.org/3/library/itertools.html --> look at subsets enumereren
+        #########################@@@@@@@@@@@@@@@@@@ MW COMMENT #7: @@@@@@@@@@@@@@@@@@#########################
+        # In response to your comment above about the itertools library: I think you're probably gonna want to
+        # use the combinations() function from the itertools library, in combination with a for-loop that
+        # iterates over all possible subset sizes, where you use that subset size as the second input argument
+        # to the combinations() function (i.e. the "r" argument).
+        #########################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#########################
+        # --> for i in range(size): combinations(iteratable_object, i)
 
         # First of all, the speaker makes inferences about the nodes that are not its own beliefs or the communicative
-        # intention
+        # intention (T'_inf)
         self.belief_revision()
+
+        # This part should be done in a loop: for i in range(n_nodes) --> combinations(nodes, i) where nodes are nodes
+        # that haven't been communicated yet
+        # Calculate the similarity between the inferred intention and the speaker's intention
+        # The speaker infers the intention by doing a belief revision with its own beliefs and a certain utterance
+
+        # Calculate the 'optimisation': maximise the similarity divided by the utterance length
 
     def belief_revision(self):
         """
@@ -94,7 +108,13 @@ class SpeakerModel:
         """
         Confirm/disconfirm the restricted offer and add clarification if needed.
         :return: list; the truth values of a (set of) node(s), at least including the truth value of the restricted
-        offer.
+        offer
+        """
+
+    def end_conversation(self):
+        """
+        End the conversation if no repair is initiated anymore and the speaker has communicated its intentions.
+        :return: boolean; true if the conversation should be ended, false otherwise.
         """
 
     def coherence(self):
