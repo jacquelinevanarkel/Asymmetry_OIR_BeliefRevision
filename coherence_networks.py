@@ -27,15 +27,18 @@ class CoherenceNetworks:
 
     def number_edges(self):
         """
-        Take the amount of edges (low, middle, high) and turn it into a number of edges.
+        Take the amount of edges (low, middle, high) and turn it into a number of edges by using fractions of the upper
+        bound.
         :return: int; number of edges
         """
+
+        # The maximum number of edges is the number of nodes^2, forming an upper bound.
         if self.a_edges == "low":
-            n_edges = random.randrange(self.n_nodes - 1, int(1.5 * self.n_nodes))
+            n_edges = round(random.uniform(((self.n_nodes - 1)/(self.n_nodes**2)), 0.34) * (self.n_nodes**2))
         elif self.a_edges == "middle":
-            n_edges = random.randrange(int(1.5 * self.n_nodes), int(2.5 * self.n_nodes))
+            n_edges = round(random.uniform(0.35, 0.69) * (self.n_nodes**2))
         elif self.a_edges == "high":
-            n_edges = random.randrange(int(2.5 * self.n_nodes), int(self.n_nodes * (self.n_nodes - 1) / 2))
+            n_edges = round(random.uniform(0.70, 1.0) * (self.n_nodes**2))
         else:
             raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
 
@@ -49,13 +52,13 @@ class CoherenceNetworks:
         """
 
         if self.a_constraint_pos == "low":
-            prob_pos_edges = random.randrange(35)
+            prob_pos_edges = random.uniform(0, 0.34)
         elif self.a_constraint_pos == "middle":
-            prob_pos_edges = random.randrange(35, 70)
+            prob_pos_edges = random.uniform(0.35, 0.69)
         elif self.a_constraint_pos == "high":
-            prob_pos_edges = random.randrange(70, 101)
+            prob_pos_edges = random.uniform(0.70, 1)
         else:
-            raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
+            raise ValueError("Amount of positive constraints must be either 'low', 'middle' or 'high'")
 
         return prob_pos_edges
 
@@ -73,7 +76,7 @@ class CoherenceNetworks:
             graph = nx.gnm_random_graph(self.n_nodes, self.n_edges)
 
         # Add positive or negative constraints to edges
-        constraints = random.choices(["positive", "negative"], weights=[self.prob_pos_edges, 100 - self.prob_pos_edges],
+        constraints = random.choices(["positive", "negative"], weights=[self.prob_pos_edges, 1 - self.prob_pos_edges],
                                      k=graph.number_of_edges())
         i = 0
         for edge in list(graph.edges()):
@@ -94,4 +97,4 @@ class CoherenceNetworks:
 
 
 if __name__ == '__main__':
-    CoherenceNetworks(5, 'middle', 'middle').create_graph()
+    CoherenceNetworks(5, 'middle', 'high').create_graph()
