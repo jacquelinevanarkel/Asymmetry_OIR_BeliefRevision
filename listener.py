@@ -23,8 +23,8 @@ class ListenerModel:
             communicated_nodes = [None]
         self.communicated_nodes = communicated_nodes
 
-        # Initialise a network history, which stores the network one time step back (so before the belief revision takes
-        # place)
+        # Initialise a network history, which stores the coherence of the network one time step back (so before the
+        # belief revision takes place)
         self.network_history = None
 
         # Add the truth values and the type to the nodes in the belief network
@@ -85,7 +85,12 @@ class ListenerModel:
 
             # Check which flip of the truth value of a node has the highest gain in coherence and flip its truth value
             # when the gain in coherence is higher than 0
+
+            # First the highest gain in coherence is found in the array containing tuples of all the gains of coherence
+            # and their corresponding node indices
             node_flipped = max(gain_coherence, key=lambda x: x[1])
+
+            # If the highest gain in coherence is bigger than 0, the corresponding node is flipped
             if node_flipped[1] > 0:
                 print("Node belief revision: ", node_flipped[0], "gain: ", node_flipped[1])
                 self.belief_network.nodes[node_flipped[0]]['truth_value'] = \
