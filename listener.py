@@ -168,22 +168,28 @@ class ListenerModel:
                     coherence = self.coherence()
 
                     # Calculate the coherence when the node is flipped and store in the list of coherence gain (together
-                    # with the node index)
+                    # with the node index and its original truth value)
                     node[1]['truth_value'] = not node[1]['truth_value']
                     coherence_new = self.coherence()
-                    gain_coherence.append((node[0], coherence_new - coherence))
+                    gain_coherence.append((node[0], coherence_new - coherence, not node[1]['truth_value']))
 
                     # Flip the truth value of the node back to its original truth value
                     node[1]['truth_value'] = not node[1]['truth_value']
 
-            # Add the index of a node to the list if the flip of the truth value of that node has the highest gain in
-            # coherence and the gain in coherence is higher than 0.
+            # Add the index and truth value of a node to the list if the flip of the truth value of that node has the
+            # highest gain in coherence and the gain in coherence is higher than 0
+
+            # First the highest gain in coherence is found in the array containing tuples of all the gains of coherence
+            # and their corresponding node indices and truth values
             node_flipped = max(gain_coherence, key=lambda x: x[1])
 
+            # If the highest gain in coherence is bigger than 0, the corresponding node is saved in a list to ask repair
+            # over. This list contains tuples (a tuple per node to ask repair over) consisting of the node index and
+            # its truth value
             if node_flipped[1] > 0:
                 print("Gain coherence: ", gain_coherence)
                 print("Node flipped coherence gain: ", node_flipped[1])
-                repair_initiation.append(node_flipped[0])
+                repair_initiation.append((node_flipped[0], node_flipped[2]))
                 self.belief_network.nodes[node_flipped[0]]['repair'] = True
 
         print("repair:", repair_initiation)
@@ -194,6 +200,9 @@ if __name__ == '__main__':
     belief_network = CoherenceNetworks(10, 'high', 'middle').create_graph()
     # ListenerModel(belief_network, ['own', 'own', 'com', None, None], [False, True, True, False, False]).coherence()
     # ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf'], [False, True, True, True, False]).belief_revision()
+    # ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
+    #               [False, True, True, True, False, False, True, True, True, False],
+    #               communicated_nodes=[None, False, None, True, None, None, None, None, None, None]).belief_revision()
     ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
-                  [False, True, True, True, False, False, True, True, True, False],
-                  communicated_nodes=[None, False, None, True, None, None, None, None, None, None]).belief_revision()
+                   [False, True, True, True, False, False, True, True, True, False],
+                   communicated_nodes=[None, False, None, True, None, None, None, None, None, None]).formulate_request()

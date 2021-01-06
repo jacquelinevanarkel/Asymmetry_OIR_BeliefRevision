@@ -111,6 +111,8 @@ class SpeakerModel:
         offer
         """
 
+
+
     def end_conversation(self):
         """
         End the conversation if no repair is initiated anymore and the speaker has communicated its intentions.
