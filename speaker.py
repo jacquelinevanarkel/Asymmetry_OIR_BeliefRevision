@@ -1,20 +1,23 @@
 # Import packages
 import networkx as nx
-
+import random
+from coherence_networks import CoherenceNetworks
 
 class SpeakerModel:
 
-    def __init__(self, belief_network, node_type, node_truth_value):
+    def __init__(self, belief_network, node_type, node_truth_value, repair_request = None):
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the nodes connected by edges with their constraints
         :param node_type: list; a list containing the types of all the nodes in the network (None if not specified)
         :param node_truth_value: list; a list containing the truth values of (some of) the nodes in the network
+        :param repair_request: list; list of tuples with the nodes (index, truth value) over which repair is asked
         """
 
         self.belief_network = belief_network
         self.node_type = node_type
         self.node_truth_value = node_truth_value
+        self.repair_request = repair_request
 
         # Add the truth values and the type to the nodes in the belief network
         for i in range(len(node_truth_value)):
@@ -32,6 +35,8 @@ class SpeakerModel:
         be as short as possible. Already communicated nodes can't be communicated again.
         :return: list; the truth values of a (set of) node(s) to be communicated
         """
+
+        # TODO: finish communicate beliefs
 
         # https://docs.python.org/3/library/itertools.html --> look at subsets enumereren
         #########################@@@@@@@@@@@@@@@@@@ MW COMMENT #7: @@@@@@@@@@@@@@@@@@#########################
@@ -107,17 +112,44 @@ class SpeakerModel:
     def repair_solution(self):
         """
         Confirm/disconfirm the restricted offer and add clarification if needed.
-        :return: list; the truth values of a (set of) node(s), at least including the truth value of the restricted
-        offer
+        :return: list; the indices and speaker's truth values of the repair request and an additional list of the
+        indices and truth values of node(s) when no confirmation could be given, else these lists are empty
         """
 
+        # Check whether the truth values of repair request match with the speaker's network, if not, no confirmation can
+        # be given
+        confirmation = True
+        for node in self.repair_request:
+            if node[1] != self.belief_network.nodes[node[0]]['truth_value']:
+                confirmation = False
+                break
 
+        # If no confirmation can be given, the speaker communicates their own truth values of the repair request and
+        # gives an additional clarification
+        repair = []
+        clarification = None
+        if not confirmation:
+            for node in self.repair_request:
+                repair.append((node[0], self.belief_network.nodes[node[0]]['truth_value']))
+            clarification = self.communicate_belief()
+
+        return repair, clarification
 
     def end_conversation(self):
         """
         End the conversation if no repair is initiated anymore and the speaker has communicated its intentions.
-        :return: boolean; true if the conversation should be ended, false otherwise.
+        :return: boolean; true if the conversation should be ended, false otherwise
         """
+
+        end_conversation = False
+        # If there is no repair request anymore
+        if self.repair_request is None:
+            end_conversation = True
+        # And if the similarity of the inferred intention and the speaker's intention is maximised the conversation is
+        # ended
+        # TODO: finish function here according to communicate beliefs
+
+        return end_conversation
 
     def coherence(self):
         """
@@ -145,3 +177,8 @@ class SpeakerModel:
         # print("Coherence = ", coherence)
 
         return coherence
+
+if __name__ == '__main__':
+    belief_network = CoherenceNetworks(10, 'low', 'middle').create_graph()
+    SpeakerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
+                  [True, False, True, True, False, True, True, False, True, False]).repair_solution([(0, False), (4, False), (5, False), (9, False)])
