@@ -6,7 +6,7 @@ import random
 
 class ListenerModel:
 
-    def __init__(self, belief_network, node_type, node_truth_value, communicated_nodes=None):
+    def __init__(self, belief_network, node_type, node_truth_value, communicated_nodes=None, init=True):
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the relevant nodes connected by edges with their constraints
@@ -15,23 +15,24 @@ class ListenerModel:
         :param communicated_nodes: list; a list containing the truth values of the node(s) communicated by the speaker
         """
 
-        # Initialise the different sets of nodes (own, communicated, inferred)
-        self.belief_network = belief_network
-        self.node_type = node_type
-        self.node_truth_value = node_truth_value
-        if communicated_nodes is None:
-            communicated_nodes = [None]
-        self.communicated_nodes = communicated_nodes
+        if init:
+            # Initialise the different sets of nodes (own, communicated, inferred)
+            self.belief_network = belief_network
+            self.node_type = node_type
+            self.node_truth_value = node_truth_value
+            if communicated_nodes is None:
+                communicated_nodes = [None]
+            self.communicated_nodes = communicated_nodes
 
-        # Initialise a network history, which stores the coherence of the network one time step back (so before the
-        # belief revision takes place)
-        self.network_history = None
+            # Initialise a network history, which stores the coherence of the network one time step back (so before the
+            # belief revision takes place)
+            self.network_history = None
 
-        # Add the truth values and the type to the nodes in the belief network
-        for i in range(len(node_truth_value)):
-            self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
-            self.belief_network.nodes[i]['type'] = self.node_type[i]
-        nx.set_node_attributes(self.belief_network, False, "repair")
+            # Add the truth values and the type to the nodes in the belief network
+            for i in range(len(node_truth_value)):
+                self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
+                self.belief_network.nodes[i]['type'] = self.node_type[i]
+            nx.set_node_attributes(self.belief_network, False, "repair")
 
         print("Network at start \n", self.belief_network.nodes(data=True))
 
@@ -47,10 +48,9 @@ class ListenerModel:
         belief_revision = False
 
         # Add the newly communicated nodes to the network
-        for i in range(len(self.communicated_nodes)):
-            if self.communicated_nodes[i] is not None:
-                self.belief_network.nodes[i]['truth_value'] = self.communicated_nodes[i]
-                self.belief_network.nodes[i]['type'] = 'com'
+        for node in self.communicated_nodes:
+            self.belief_network.nodes[node[0]]['truth_value'] = node[1]
+            self.belief_network.nodes[node[0]]['type'] = 'com'
 
         print("Network before belief revision \n", self.belief_network.nodes(data=True))
         # Greedy algorithm: flip the node (inferred or None) that has the highest gain in coherence
@@ -103,6 +103,8 @@ class ListenerModel:
             print("Network after belief revision: \n", self.belief_network.nodes(data=True))
             print("Trouble identification")
             self.trouble_identification()
+
+        return self.belief_network
 
     def coherence(self):
         """
@@ -204,5 +206,5 @@ if __name__ == '__main__':
     #               [False, True, True, True, False, False, True, True, True, False],
     #               communicated_nodes=[None, False, None, True, None, None, None, None, None, None]).belief_revision()
     ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
-                   [False, True, True, True, False, False, True, True, True, False],
-                   communicated_nodes=[None, False, None, True, None, None, None, None, None, None]).formulate_request()
+                  [False, True, True, True, False, False, True, True, True, False],
+                  communicated_nodes=[(0, True), (5, False)]).belief_revision()

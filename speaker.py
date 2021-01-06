@@ -5,7 +5,7 @@ from coherence_networks import CoherenceNetworks
 
 class SpeakerModel:
 
-    def __init__(self, belief_network, node_type, node_truth_value, repair_request = None):
+    def __init__(self, belief_network, node_type, node_truth_value, repair_request=None, init=True):
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the nodes connected by edges with their constraints
@@ -14,26 +14,31 @@ class SpeakerModel:
         :param repair_request: list; list of tuples with the nodes (index, truth value) over which repair is asked
         """
 
-        self.belief_network = belief_network
-        self.node_type = node_type
-        self.node_truth_value = node_truth_value
-        self.repair_request = repair_request
+        if init:
+            self.belief_network = belief_network
+            self.node_type = node_type
+            self.node_truth_value = node_truth_value
+            self.repair_request = repair_request
 
-        # Add the truth values and the type to the nodes in the belief network
-        for i in range(len(node_truth_value)):
-            self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
-            self.belief_network.nodes[i]['type'] = self.node_type[i]
+            # Initialise a similarity score to keep track of the similarity between the inferred intention and the
+            # speaker's intention
+            self.similarity = 0
 
-        # Initialise all nodes with communicated set to false, to keep track of which nodes are already communicated
-        # by the speaker
-        nx.set_node_attributes(self.belief_network, False, "communicated")
+            # Add the truth values and the type to the nodes in the belief network
+            for i in range(len(node_truth_value)):
+                self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
+                self.belief_network.nodes[i]['type'] = self.node_type[i]
+
+            # Initialise all nodes with communicated set to false, to keep track of which nodes are already communicated
+            # by the speaker
+            nx.set_node_attributes(self.belief_network, False, "communicated")
 
     def communicate_belief(self):
         """
         Communicate a (set of) node(s), which will be chosen such that when a belief revision is performed
         (with an egocentric listener model) it is most similar to the communicative intentions and the utterance should
         be as short as possible. Already communicated nodes can't be communicated again.
-        :return: list; the truth values of a (set of) node(s) to be communicated
+        :return: list; the truth values of a (set of) node(s) to be communicated (the other nodes will be set to 'None')
         """
 
         # TODO: finish communicate beliefs
@@ -131,9 +136,12 @@ class SpeakerModel:
         if not confirmation:
             for node in self.repair_request:
                 repair.append((node[0], self.belief_network.nodes[node[0]]['truth_value']))
-            clarification = self.communicate_belief()
+            #clarification = self.communicate_belief()
+            clarification = []
 
-        return repair, clarification
+        repair_solution = repair + clarification
+
+        return repair_solution
 
     def end_conversation(self):
         """
