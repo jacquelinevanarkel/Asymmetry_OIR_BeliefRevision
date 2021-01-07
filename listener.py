@@ -53,6 +53,9 @@ class ListenerModel:
             self.belief_network.nodes[node[0]]['type'] = 'com'
 
         print("Network before belief revision \n", self.belief_network.nodes(data=True))
+
+        # TODO: change to exhaustive search (use itertools to see which combination of all combinations has highest
+        #  coherence)
         # Greedy algorithm: flip the node (inferred or None) that has the highest gain in coherence
         # Repeat for 2 times the number of nodes in the network
         for _ in range(2 * self.belief_network.number_of_nodes()):
@@ -155,6 +158,8 @@ class ListenerModel:
 
         print("Formulate repair, network state:\n", self.belief_network.nodes(data=True))
 
+        # TODO: change to exhaustive search (use itertools to see which combination of all combinations has highest
+        #  coherence)
         # Greedy algorithm: flip the node (own or inferred) that has the highest gain in coherence
         # Repeat for 2 times the number of nodes in the network
         for _ in range(2 * self.belief_network.number_of_nodes()):

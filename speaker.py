@@ -73,6 +73,8 @@ class SpeakerModel:
 
         print("Network before belief revision \n", self.belief_network.nodes(data=True))
 
+        # TODO: change to exhaustive search (use itertools to see which combination of all combinations has highest
+        #  coherence)
         # Greedy algorithm: flip the node (inferred or None) that has the highest gain in coherence
         # Repeat for 2 times the number of nodes in the network
         for _ in range(2 * self.belief_network.number_of_nodes()):

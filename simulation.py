@@ -75,6 +75,11 @@ def simulation(belief_network, node_type_listener, node_truth_value_listener, no
     network
     """
 
+    # Two manipulations: degree of overlap of the own belief sets and degree of asymmetry within these overlapping sets
+
+    # The truth values for the belief network are generated independently from each other and only the overlapping parts
+    # of the own beliefs will be made the same and changed accordingly to the degree of asymmetry. This will be done by
+    # flipping some truth values randomly, divided over the two belief networks for the speaker and listener.
 
 def multi_runs(number_nodes, amount_edges, amount_positive_constraints):
     """
@@ -87,5 +92,7 @@ def multi_runs(number_nodes, amount_edges, amount_positive_constraints):
 
     belief_network = CoherenceNetworks(10, 'high', 'middle').create_graph()
 
-    # Return: asymmetry solved/intention correctly communicated, number of times repair is initiated, coherence score
-    # per interaction, number of interactions per conversation, confirmation or disconfirmation in repair solution
+    # Return: networks (speaker and listener) of every turn with all edge and node dataa, number of times repair is
+    # initiated, coherence score per turn, number of interactions per conversation (keep track when a conversation
+    # starts/ends as you already store the networks or a simple count?), confirmation or disconfirmation in repair
+    # solution
