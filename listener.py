@@ -140,6 +140,8 @@ class ListenerModel:
         if self.coherence() < self.network_history:
             self.formulate_request()
             print("REPAIR!")
+        else:
+            return None
 
     def formulate_request(self):
         """

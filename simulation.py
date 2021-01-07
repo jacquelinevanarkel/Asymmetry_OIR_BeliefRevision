@@ -27,9 +27,8 @@ def conversation(belief_network, node_type_listener, node_truth_value_listener, 
     # A conversation can consist of a maximum of the number of nodes divided by 2 interactions
     for _ in range(belief_network.number_of_nodes()/2):
         # Speaker communicates something
-        utterance = SpeakerModel(belief_network, node_type_speaker, node_truth_value_speaker).communicate_belief()
-        belief_network_speaker = SpeakerModel(belief_network, node_type_speaker,
-                                              node_truth_value_speaker).belief_network
+        utterance, belief_network_speaker = SpeakerModel(belief_network, node_type_speaker, node_truth_value_speaker).\
+            communicate_belief()
 
         # Listener changes beliefs accordingly and initiates repair if necessary
         repair_request, belief_network_listener = ListenerModel(belief_network, node_type_listener,
@@ -44,7 +43,8 @@ def conversation(belief_network, node_type_listener, node_truth_value_listener, 
             # The listener perform belief revision according to the repair solution from the speaker
             repair_request, belief_network_listener = ListenerModel(belief_network_listener, node_type_listener,
                                                                     node_truth_value_listener,
-                                                                    communicated_nodes=repair_solution).belief_revision()
+                                                                    communicated_nodes=repair_solution, init=False).\
+                belief_revision()
 
         # If the listener does not initiate repair and the similarity is maximised the conversation is ended
         if not repair_request:

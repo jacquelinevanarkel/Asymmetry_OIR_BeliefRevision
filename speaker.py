@@ -63,6 +63,8 @@ class SpeakerModel:
 
         # Calculate the 'optimisation': maximise the similarity divided by the utterance length
 
+        return utterance, self.belief_network
+
     def belief_revision(self):
         """
         Make inferences based on own and communicated beliefs (same function as for listener).
@@ -143,21 +145,21 @@ class SpeakerModel:
 
         return repair_solution
 
-    def end_conversation(self):
-        """
-        End the conversation if no repair is initiated anymore and the speaker has communicated its intentions.
-        :return: boolean; true if the conversation should be ended, false otherwise
-        """
-
-        end_conversation = False
-        # If there is no repair request anymore
-        if self.repair_request is None:
-            end_conversation = True
-        # And if the similarity of the inferred intention and the speaker's intention is maximised the conversation is
-        # ended
-        # TODO: finish function here according to communicate beliefs
-
-        return end_conversation
+    # def end_conversation(self):
+    #     """
+    #     End the conversation if no repair is initiated anymore and the speaker has communicated its intentions.
+    #     :return: boolean; true if the conversation should be ended, false otherwise
+    #     """
+    #
+    #     end_conversation = False
+    #     # If there is no repair request anymore
+    #     if self.repair_request is None:
+    #         end_conversation = True
+    #     # And if the similarity of the inferred intention and the speaker's intention is maximised the conversation is
+    #     # ended
+    #     # TODO: finish function here according to communicate beliefs
+    #
+    #     return end_conversation
 
     def coherence(self):
         """
@@ -189,4 +191,5 @@ class SpeakerModel:
 if __name__ == '__main__':
     belief_network = CoherenceNetworks(10, 'low', 'middle').create_graph()
     SpeakerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
-                  [True, False, True, True, False, True, True, False, True, False]).repair_solution([(0, False), (4, False), (5, False), (9, False)])
+                  [True, False, True, True, False, True, True, False, True, False],
+                 repair_request=[(0, False), (4, False), (5, False), (9, False)]).repair_solution()
