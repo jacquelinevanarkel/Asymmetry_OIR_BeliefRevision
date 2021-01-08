@@ -2,6 +2,7 @@
 import networkx as nx
 from coherence_networks import CoherenceNetworks
 import random
+import itertools
 
 
 class ListenerModel:
@@ -24,9 +25,12 @@ class ListenerModel:
                 communicated_nodes = [None]
             self.communicated_nodes = communicated_nodes
 
-            # Initialise a network history, which stores the coherence of the network one time step back (so before the
-            # belief revision takes place)
-            self.network_history = None
+            # Initialise a coherence history, which stores the coherence of the network one time step back (so before
+            # the belief revision takes place)
+            self.coherence_history = None
+
+            # If a type value is none, set it to inferred as it will be inferred in the first step of belief revision
+            self.node_type = ['inf' if type is None else type for type in self.node_type]
 
             # Add the truth values and the type to the nodes in the belief network
             for i in range(len(node_truth_value)):
@@ -42,10 +46,8 @@ class ListenerModel:
         """
 
         # Store the coherence of the network before the belief revision has taken place
-        self.network_history = self.coherence()
-
-        # Initialise belief_revision: whether belief revision has taken place
-        belief_revision = False
+        self.coherence_history = self.coherence()
+        network_history = self.belief_network.copy()
 
         # Add the newly communicated nodes to the network
         for node in self.communicated_nodes:
@@ -54,55 +56,46 @@ class ListenerModel:
 
         print("Network before belief revision \n", self.belief_network.nodes(data=True))
 
-        # TODO: change to exhaustive search (use itertools to see which combination of all combinations has highest
-        #  coherence)
-        # Greedy algorithm: flip the node (inferred or None) that has the highest gain in coherence
-        # Repeat for 2 times the number of nodes in the network
-        for _ in range(2 * self.belief_network.number_of_nodes()):
-            # Initialise a list that keeps track of the gain of coherence when the node would be flipped for all the
-            # nodes (inferred or None) in the network
-            gain_coherence = []
+        # Get the inferred nodes and its combinations of truth values in order to explore different coherence values
+        inferred_nodes = [x for x, y in self.belief_network.nodes(data=True) if y['type'] == 'inf']
+        print(inferred_nodes)
+        combinations = list(itertools.product([True, False], repeat=len(inferred_nodes)))
+        print(combinations)
 
-            # Check which node flip increases coherence most of the possible nodes in the network (inferred or None)
-            for node in self.belief_network.nodes(data=True):
+        # Calculate the coherence for all possible combinations
 
-                # When the truth value is set to None, initialise it with a random truth value and set the type to
-                # inferred
-                if node[1]['type'] is None:
-                    node[1]['truth_value'] = random.choice([True, False])
-                    node[1]['type'] = 'inf'
+        # Initialise a list to store the different coherence values in
+        coherence_values = []
 
-                # Only flip inferred nodes
-                if node[1]['type'] == 'inf':
-                    # Calculate the coherence before the node is flipped
-                    coherence = self.coherence()
+        for n in range(len(combinations)-1):
+            # Initialise a count for the number of inferred nodes
+            i = 0
+            for inferred_node in inferred_nodes:
+                self.belief_network.nodes[inferred_node]['truth_value'] = combinations[n][i]
+                i += 1
+            coherence_values.append(self.coherence())
 
-                    # Calculate the coherence when the node is flipped and store in the list of coherence gain (together
-                    # with the node index)
-                    node[1]['truth_value'] = not node[1]['truth_value']
-                    coherence_new = self.coherence()
-                    gain_coherence.append((node[0], coherence_new - coherence))
+        print("coherence_values: ", coherence_values)
 
-                    # Flip the truth value of the node back to its original truth value
-                    node[1]['truth_value'] = not node[1]['truth_value']
+        # Store all the indices of the maximum coherence values in a list and pick one randomly
+        max_coherence = max(coherence_values)
+        max_indices = [i for i in range(len(coherence_values)) if coherence_values[i] == max_coherence]
+        nodes_truth_values_index = random.choice(max_indices)
 
-            # Check which flip of the truth value of a node has the highest gain in coherence and flip its truth value
-            # when the gain in coherence is higher than 0
+        print("max indices: ", max_indices)
+        print("nodes_truth_values_index: ", nodes_truth_values_index)
 
-            # First the highest gain in coherence is found in the array containing tuples of all the gains of coherence
-            # and their corresponding node indices
-            node_flipped = max(gain_coherence, key=lambda x: x[1])
+        # Set the truth values of the inferred nodes to (one of) the maximum coherence option(s)
+        i = 0
+        for inferred_node in inferred_nodes:
+            self.belief_network.nodes[inferred_node]['truth_value'] = combinations[nodes_truth_values_index][i]
+            i += 1
+        print(self.belief_network.nodes(data=True))
 
-            # If the highest gain in coherence is bigger than 0, the corresponding node is flipped
-            if node_flipped[1] > 0:
-                print("Node belief revision: ", node_flipped[0], "gain: ", node_flipped[1])
-                self.belief_network.nodes[node_flipped[0]]['truth_value'] = \
-                    not self.belief_network.nodes[node_flipped[0]]['truth_value']
-                # If at least one node is flipped, belief revision has taken place and the coherence should be compared
-                # with the previous network before belief revision.
-                belief_revision = True
-
-        if belief_revision:
+        # If at least one node is flipped, belief revision has taken place and the coherence should be compared
+        # with the previous network before belief revision (trouble_identification)
+        if not nx.is_isomorphic(self.belief_network, network_history, node_match=lambda x, y: x['truth_value'] ==
+                                                                                                   y['truth_value']):
             print("Network after belief revision: \n", self.belief_network.nodes(data=True))
             print("Trouble identification")
             self.trouble_identification()
@@ -140,7 +133,7 @@ class ListenerModel:
         """
 
         # Initiate repair if the coherence is smaller than one time step back
-        if self.coherence() < self.network_history:
+        if self.coherence() < self.coherence_history:
             self.formulate_request()
             print("REPAIR!")
         else:
@@ -153,7 +146,7 @@ class ListenerModel:
         :return: list; the node(s) included in the restricted offer
         """
 
-        # Initialise a list to store the indeces of the nodes to include in the repair initiation
+        # Initialise a list to store the indices of the nodes to include in the repair initiation
         repair_initiation = []
 
         print("Formulate repair, network state:\n", self.belief_network.nodes(data=True))
