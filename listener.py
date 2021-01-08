@@ -21,15 +21,13 @@ class ListenerModel:
             self.belief_network = belief_network
             self.node_type = node_type
             self.node_truth_value = node_truth_value
-            if communicated_nodes is None:
-                communicated_nodes = [None]
             self.communicated_nodes = communicated_nodes
 
             # Initialise a coherence history, which stores the coherence of the network one time step back (so before
             # the belief revision takes place)
             self.coherence_history = None
 
-            # If a type value is none, set it to inferred as it will be inferred in the first step of belief revision
+            # If a type value is none, set it to inferred as it will be inferred
             self.node_type = ['inf' if type is None else type for type in self.node_type]
 
             # Add the truth values and the type to the nodes in the belief network
@@ -46,13 +44,15 @@ class ListenerModel:
         """
 
         # Store the coherence of the network before the belief revision has taken place
-        self.coherence_history = self.coherence()
+        self.coherence_history = self.coherence(self.belief_network)
         network_history = self.belief_network.copy()
 
         # Add the newly communicated nodes to the network
-        for node in self.communicated_nodes:
-            self.belief_network.nodes[node[0]]['truth_value'] = node[1]
-            self.belief_network.nodes[node[0]]['type'] = 'com'
+        if self.communicated_nodes is not None:
+            for node in self.communicated_nodes:
+                self.belief_network.nodes[node[0]]['truth_value'] = node[1]
+                self.belief_network.nodes[node[0]]['type'] = 'com'
+                print("Coherence after com: ", self.coherence(self.belief_network))
 
         print("Network before belief revision \n", self.belief_network.nodes(data=True))
 
@@ -67,13 +67,13 @@ class ListenerModel:
         # Initialise a list to store the different coherence values in
         coherence_values = []
 
-        for n in range(len(combinations)-1):
+        for n in range(len(combinations)):
             # Initialise a count for the number of inferred nodes
             i = 0
             for inferred_node in inferred_nodes:
                 self.belief_network.nodes[inferred_node]['truth_value'] = combinations[n][i]
                 i += 1
-            coherence_values.append(self.coherence())
+            coherence_values.append(self.coherence(self.belief_network))
 
         print("coherence_values: ", coherence_values)
 
@@ -102,7 +102,7 @@ class ListenerModel:
 
         return self.belief_network
 
-    def coherence(self):
+    def coherence(self, network):
         """
         Calculate the coherence of a belief network.
         :return: float; the coherence of a belief network
@@ -111,16 +111,16 @@ class ListenerModel:
         # Initialise coherence
         coherence = 0
 
-        for edge in list(self.belief_network.edges(data='constraint')):
+        for edge in list(network.edges(data='constraint')):
             if edge[2] == 'positive':
-                if self.belief_network.nodes[edge[0]]['truth_value'] == \
-                        self.belief_network.nodes[edge[1]]['truth_value']:
+                if network.nodes[edge[0]]['truth_value'] == \
+                        network.nodes[edge[1]]['truth_value']:
                     coherence += 1
                 else:
                     coherence -= 1
             elif edge[2] == 'negative':
-                if self.belief_network.nodes[edge[0]]['truth_value'] == \
-                        self.belief_network.nodes[edge[1]]['truth_value']:
+                if network.nodes[edge[0]]['truth_value'] == \
+                        network.nodes[edge[1]]['truth_value']:
                     coherence -= 1
                 else:
                     coherence += 1
@@ -132,8 +132,10 @@ class ListenerModel:
         Compares the coherence of the current belief network with the previous one (before last communicated node(s)).
         """
 
+        print("coherence history:", self.coherence_history)
+        print("coherence:", self.coherence(self.belief_network))
         # Initiate repair if the coherence is smaller than one time step back
-        if self.coherence() < self.coherence_history:
+        if self.coherence(self.belief_network) < self.coherence_history:
             self.formulate_request()
             print("REPAIR!")
         else:
@@ -149,50 +151,49 @@ class ListenerModel:
         # Initialise a list to store the indices of the nodes to include in the repair initiation
         repair_initiation = []
 
+        # Make a copy of the existing belief network in order to explore the coherence of different truth value
+        # assignment combinations
+        network_copy = self.belief_network.copy()
+
         print("Formulate repair, network state:\n", self.belief_network.nodes(data=True))
 
-        # TODO: change to exhaustive search (use itertools to see which combination of all combinations has highest
-        #  coherence)
-        # Greedy algorithm: flip the node (own or inferred) that has the highest gain in coherence
-        # Repeat for 2 times the number of nodes in the network
-        for _ in range(2 * self.belief_network.number_of_nodes()):
-            # Initialise a list that keeps track of the gain of coherence when the node would be flipped for all the
-            # nodes (own or inferred) in the network
-            gain_coherence = []
+        # Get the not (yet) communicated nodes and its combinations of truth values in order to explore
+        # different coherence values
+        not_comm_nodes = [x for x, y in network_copy.nodes(data=True) if y['type'] == 'inf' or
+                          y['type'] == 'own' and y['repair'] is False]
+        print(not_comm_nodes)
+        combinations = list(itertools.product([True, False], repeat=len(not_comm_nodes)))
+        print(combinations)
 
-            # Check which node flip increases coherence most of the possible nodes in the network (inferred or None)
-            for node in self.belief_network.nodes(data=True):
+        # Calculate the coherence for all possible combinations
 
-                # Only flip inferred nodes and nodes without a type yet and make sure not to ask repair about the same
-                # node
-                if (node[1]['type'] == 'own' or node[1]['type'] == 'inf') and node[1]['repair'] is False:
-                    # Calculate the coherence before the node is flipped
-                    coherence = self.coherence()
+        # Initialise a list to store the different coherence values in
+        coherence_values = []
 
-                    # Calculate the coherence when the node is flipped and store in the list of coherence gain (together
-                    # with the node index and its original truth value)
-                    node[1]['truth_value'] = not node[1]['truth_value']
-                    coherence_new = self.coherence()
-                    gain_coherence.append((node[0], coherence_new - coherence, not node[1]['truth_value']))
+        for n in range(len(combinations)):
+            # Initialise a count for the number of inferred nodes
+            i = 0
+            for not_comm_node in not_comm_nodes:
+                network_copy.nodes[not_comm_node]['truth_value'] = combinations[n][i]
+                i += 1
+            coherence_values.append(self.coherence(network_copy))
 
-                    # Flip the truth value of the node back to its original truth value
-                    node[1]['truth_value'] = not node[1]['truth_value']
+        print("coherence_values: ", coherence_values)
 
-            # Add the index and truth value of a node to the list if the flip of the truth value of that node has the
-            # highest gain in coherence and the gain in coherence is higher than 0
+        # Store all the indices of the maximum coherence values in a list and pick one randomly
+        max_coherence = max(coherence_values)
+        max_indices = [i for i in range(len(coherence_values)) if coherence_values[i] == max_coherence]
+        nodes_truth_values_index = random.choice(max_indices)
 
-            # First the highest gain in coherence is found in the array containing tuples of all the gains of coherence
-            # and their corresponding node indices and truth values
-            node_flipped = max(gain_coherence, key=lambda x: x[1])
+        print("max indices: ", max_indices)
+        print("nodes_truth_values_index: ", nodes_truth_values_index)
 
-            # If the highest gain in coherence is bigger than 0, the corresponding node is saved in a list to ask repair
-            # over. This list contains tuples (a tuple per node to ask repair over) consisting of the node index and
-            # its truth value
-            if node_flipped[1] > 0:
-                print("Gain coherence: ", gain_coherence)
-                print("Node flipped coherence gain: ", node_flipped[1])
-                repair_initiation.append((node_flipped[0], node_flipped[2]))
-                self.belief_network.nodes[node_flipped[0]]['repair'] = True
+        # The node(s) to be asked repair over are stored in a list containing tuples (a tuple per node to ask repair
+        # over) consisting of the node index and its truth value
+        for not_comm_node in not_comm_nodes:
+            if network_copy.nodes[not_comm_node]['truth_value'] != self.belief_network.nodes[not_comm_node]['truth_value']:
+                repair_initiation.append((not_comm_node, self.belief_network.nodes[not_comm_node]['truth_value']))
+                self.belief_network.nodes[not_comm_node]['repair'] = True
 
         print("repair:", repair_initiation)
         return repair_initiation
@@ -206,5 +207,4 @@ if __name__ == '__main__':
     #               [False, True, True, True, False, False, True, True, True, False],
     #               communicated_nodes=[None, False, None, True, None, None, None, None, None, None]).belief_revision()
     ListenerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
-                  [False, True, True, True, False, False, True, True, True, False],
-                  communicated_nodes=[(0, True), (5, False)]).belief_revision()
+                  [False, True, True, True, False, False, True, True, True, False]).belief_revision()
