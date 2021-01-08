@@ -27,7 +27,7 @@ class ListenerModel:
             # the belief revision takes place)
             self.coherence_history = None
 
-            # If a type value is none, set it to inferred as it will be inferred
+            # If a type value is none, set it to inferred so they can be inferred in belief_revision()
             self.node_type = ['inf' if type is None else type for type in self.node_type]
 
             # Add the truth values and the type to the nodes in the belief network

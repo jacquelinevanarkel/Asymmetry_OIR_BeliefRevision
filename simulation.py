@@ -28,7 +28,7 @@ def conversation(belief_network, node_type_listener, node_truth_value_listener, 
     for _ in range(belief_network.number_of_nodes()/2):
         # Speaker communicates something
         utterance, belief_network_speaker = SpeakerModel(belief_network, node_type_speaker, node_truth_value_speaker).\
-            communicate_belief()
+            communicate_beliefs()
 
         # Listener changes beliefs accordingly and initiates repair if necessary
         repair_request, belief_network_listener = ListenerModel(belief_network, node_type_listener,
