@@ -9,10 +9,10 @@ class CoherenceNetworks:
     def __init__(self, number_nodes, amount_edges, amount_positive_constraints):
         """
         Initialisation of class.
-        :param number_nodes: int; the number of nodes in the network
-        :param amount_edges: string; the amount of edges connecting the nodes in the network (low, middle, high)
+        :param number_nodes: int; the number of nodes in the belief_network
+        :param amount_edges: string; the amount of edges connecting the nodes in the belief_network (low, middle, high)
         :param amount_positive_constraints: string; the amount of positive constraints connecting the nodes in the
-        network (low, middle, high)
+        belief_network (low, middle, high)
         """
 
         self.n_nodes = number_nodes

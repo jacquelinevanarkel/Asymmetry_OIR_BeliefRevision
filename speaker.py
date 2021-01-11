@@ -6,38 +6,21 @@ import itertools
 
 class SpeakerModel:
 
-    def __init__(self, belief_network, node_type, node_truth_value, intention, repair_request=None, init=True):
+    def __init__(self, belief_network, intention, repair_request=None):
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the nodes connected by edges with their constraints
-        :param node_type: list; a list containing the types of all the nodes in the network (None if not specified)
-        :param node_truth_value: list; a list containing the truth values of (some of) the nodes in the network
         :param repair_request: list; list of tuples with the nodes (index, truth value) over which repair is asked
         :param intention: list; list with the indices of the nodes that form the speaker's intention
         """
 
-        if init:
-            self.belief_network = belief_network
-            self.node_type = node_type
-            self.node_truth_value = node_truth_value
-            self.repair_request = repair_request
-            self.intention = intention
+        self.belief_network = belief_network
+        self.repair_request = repair_request
+        self.intention = intention
 
-            # Initialise a similarity score to keep track of the similarity between the inferred intention and the
-            # speaker's intention
-            self.similarity = 0
-
-            # If a type value is none, set it to inferred so they can be inferred in belief_revision()
-            self.node_type = ['inf' if type is None else type for type in self.node_type]
-
-            # Add the truth values and the type to the nodes in the belief network
-            for i in range(len(node_truth_value)):
-                self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
-                self.belief_network.nodes[i]['type'] = self.node_type[i]
-
-            # Initialise all nodes with communicated set to false, to keep track of which nodes are already communicated
-            # by the speaker
-            nx.set_node_attributes(self.belief_network, False, "communicated")
+        # Initialise a similarity score to keep track of the similarity between the inferred intention and the
+        # speaker's intention
+        self.similarity = 0
 
     def communicate_beliefs(self):
         """
@@ -49,17 +32,15 @@ class SpeakerModel:
 
         # First of all, the speaker makes inferences about the nodes that are not its own beliefs or the communicative
         # intention (T'_inf)
-        print("Belief network before belief revision: ", self.belief_network.nodes(data=True))
         self.belief_network = self.belief_revision(self.belief_network)
-        print("Belief network after belief revision: ", self.belief_network.nodes(data=True))
-
-        # This part should be done in a loop: for i in range(n_nodes) --> combinations(nodes, i) where nodes are nodes
-        # that haven't been communicated yet
 
         # Get the not (yet) communicated nodes and its combinations of different sizes of (sub)sets
         not_comm_nodes = [x for x, y in self.belief_network.nodes(data=True) if y['type'] == 'inf' or
                           y['type'] == 'own']
-        print("Nodes that can be communicated: ", not_comm_nodes)
+
+        # If there are no nodes left to communicate, stop and indicate that nothing can be communicated
+        if not_comm_nodes is None:
+            return False, self.belief_network
 
         # For every combination of (subsets) of nodes, calculate the similarity after belief revision and divide over
         # the number of nodes
@@ -70,7 +51,6 @@ class SpeakerModel:
         # Add all those (sub)sets to a list of combinations
         for r in range(1, len(not_comm_nodes)+1):
             combinations.extend(list(itertools.combinations(not_comm_nodes, r)))
-        print("Combinations: ", combinations)
 
         # Perform belief revision for every combination and calculate the similarity and divide over the number of nodes
         optimisation = []
@@ -79,26 +59,21 @@ class SpeakerModel:
             network_listener = self.belief_revision(network, communicated_nodes=combination)
 
             # Calculate similarity
-            similarity = 0
             for node in self.intention:
                 if network_listener.nodes[node]['truth_value'] == self.belief_network.nodes[node]['truth_value']:
-                    similarity += 1
-            optimisation.append(similarity/len(combination))
+                    self.similarity += 1
+            optimisation.append(self.similarity/len(combination))
 
-        print("Optimisation: ", optimisation)
         # The utterance is the combination with the highest optimisation
         max_optimisation = max(optimisation)
         max_indices = [i for i in range(len(optimisation)) if optimisation[i] == max_optimisation]
         optimisation_index = random.choice(max_indices)
         utterance_indices = combinations[optimisation_index]
-        print("Optimisation index: ", optimisation_index)
-        print("Utterance indices: ", utterance_indices)
 
         utterance = []
         for index in utterance_indices:
-            utterance.append((index,self.belief_network.nodes[index]['truth_value']))
-
-        print("Utterance: ", utterance)
+            utterance.append((index, self.belief_network.nodes[index]['truth_value']))
+            self.belief_network.nodes[index]['type'] = 'com'
 
         return utterance, self.belief_network
 
@@ -151,7 +126,7 @@ class SpeakerModel:
         indices and truth values of node(s) when no confirmation could be given, else these lists are empty
         """
 
-        # Check whether the truth values of repair request match with the speaker's network, if not, no confirmation can
+        # Check whether the truth values of repair request match with the speaker's belief_network, if not, no confirmation can
         # be given
         confirmation = True
         for node in self.repair_request:
@@ -162,36 +137,20 @@ class SpeakerModel:
         # If no confirmation can be given, the speaker communicates their own truth values of the repair request and
         # gives an additional clarification
         repair = []
-        clarification = None
+        clarification = []
         if not confirmation:
             for node in self.repair_request:
                 repair.append((node[0], self.belief_network.nodes[node[0]]['truth_value']))
-            #clarification = self.communicate_belief()
-            clarification = []
+                self.belief_network.nodes[node[0]]['type'] = 'com'
+            clarification, self.belief_network = self.communicate_beliefs()
 
         repair_solution = repair + clarification
 
-        return repair_solution
-
-    # def end_conversation(self):
-    #     """
-    #     End the conversation if no repair is initiated anymore and the speaker has communicated its intentions.
-    #     :return: boolean; true if the conversation should be ended, false otherwise
-    #     """
-    #
-    #     end_conversation = False
-    #     # If there is no repair request anymore
-    #     if self.repair_request is None:
-    #         end_conversation = True
-    #     # And if the similarity of the inferred intention and the speaker's intention is maximised the conversation is
-    #     # ended
-    #     # TODO: finish function here according to communicate beliefs
-    #
-    #     return end_conversation
+        return repair_solution, self.similarity
 
     def coherence(self, network):
         """
-        Calculate coherence of a belief network.
+        Calculate coherence of a belief belief_network.
         :return: float; coherence
         """
 
@@ -212,12 +171,4 @@ class SpeakerModel:
                 else:
                     coherence += 1
 
-        # print("Coherence = ", coherence)
-
         return coherence
-
-if __name__ == '__main__':
-    belief_network = CoherenceNetworks(10, 'low', 'middle').create_graph()
-    SpeakerModel(belief_network, ['own', 'own', 'com', None, 'inf', 'own', 'own', 'com', None, 'inf'],
-                  [True, False, True, True, False, True, True, False, True, False], [0, 1, 9, 3],
-                 repair_request=[(0, False), (4, False), (5, False), (9, False)]).communicate_beliefs()

@@ -9,8 +9,8 @@ class Agent:
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the nodes connected by edges with their constraints
-        :param node_type: list; a list containing the types of all the nodes in the network (None if not specified)
-        :param node_truth_value: list; a list containing the truth values of (some of) the nodes in the network
+        :param node_type: list; a list containing the types of all the nodes in the belief_network (None if not specified)
+        :param node_truth_value: list; a list containing the truth values of (some of) the nodes in the belief_network
         """
 
         self.belief_network = belief_network
@@ -20,7 +20,7 @@ class Agent:
         # Initialise a variable that keeps track whether belief revision has taken place
         self.belief_revision = False
 
-        # Add the truth values and the type to the nodes in the belief network
+        # Add the truth values and the type to the nodes in the belief belief_network
         for i in range(len(node_truth_value)):
             self.belief_network.nodes[i]['truth_value'] = self.node_truth_value[i]
             self.belief_network.nodes[i]['type'] = self.node_type[i]
@@ -32,13 +32,13 @@ class Agent:
         """
 
         # Greedy algorithm: flip the node (inferred or None) that has the highest gain in coherence
-        # Repeat for 2 times the number of nodes in the network
+        # Repeat for 2 times the number of nodes in the belief_network
         for _ in range(2 * self.belief_network.number_of_nodes()):
             # Initialise a list that keeps track of the gain of coherence when the node would be flipped for all the
-            # nodes (inferred or None) in the network
+            # nodes (inferred or None) in the belief_network
             gain_coherence = []
 
-            # Check which node flip increases coherence most of the possible nodes in the network (inferred or None)
+            # Check which node flip increases coherence most of the possible nodes in the belief_network (inferred or None)
             for node in self.belief_network.nodes(data=True):
 
                 # When the truth value is set to None, initialise it with a random truth value and set the type to
@@ -74,13 +74,13 @@ class Agent:
                 self.belief_network.nodes[node_flipped[0]]['truth_value'] = \
                     not self.belief_network.nodes[node_flipped[0]]['truth_value']
                 # If at least one node is flipped, belief revision has taken place and the coherence should be compared
-                # with the previous network before belief revision.
+                # with the previous belief_network before belief revision.
                 self.belief_revision = True
 
     def coherence(self):
         """
-        Calculate the coherence of a belief network.
-        :return: float; the coherence of a belief network
+        Calculate the coherence of a belief belief_network.
+        :return: float; the coherence of a belief belief_network
         """
 
         # Initialise coherence
