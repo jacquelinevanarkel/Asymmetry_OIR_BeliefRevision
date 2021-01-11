@@ -38,7 +38,7 @@ def conversation(belief_network, node_type_listener, node_truth_value_listener, 
     for _ in range(belief_network.number_of_nodes()):
 
         # Speaker communicates something
-        utterance, belief_network_speaker = SpeakerModel(belief_network_speaker, intention).communicate_beliefs()
+        utterance, belief_network_speaker, similarity = SpeakerModel(belief_network_speaker, intention).communicate_beliefs()
         print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
         print("Speaker communicates: ", utterance)
 

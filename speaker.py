@@ -75,7 +75,7 @@ class SpeakerModel:
             utterance.append((index, self.belief_network.nodes[index]['truth_value']))
             self.belief_network.nodes[index]['type'] = 'com'
 
-        return utterance, self.belief_network
+        return utterance, self.belief_network, self.similarity
 
     def belief_revision(self, network, communicated_nodes=None):
         """
@@ -142,11 +142,11 @@ class SpeakerModel:
             for node in self.repair_request:
                 repair.append((node[0], self.belief_network.nodes[node[0]]['truth_value']))
                 self.belief_network.nodes[node[0]]['type'] = 'com'
-            clarification, self.belief_network = self.communicate_beliefs()
+            clarification, self.belief_network, similarity = self.communicate_beliefs()
 
         repair_solution = repair + clarification
 
-        return repair_solution, self.similarity
+        return repair_solution, similarity
 
     def coherence(self, network):
         """

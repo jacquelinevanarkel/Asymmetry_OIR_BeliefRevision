@@ -136,6 +136,11 @@ class ListenerModel:
         # different coherence values
         not_comm_nodes = [x for x, y in network_copy.nodes(data=True) if y['type'] == 'inf' or
                           y['type'] == 'own' and y['repair'] is False]
+
+        # If there are no nodes that have not been communicated yet, break and return 'False' as a repair initiation
+        if not_comm_nodes is None:
+            return False
+
         combinations = list(itertools.product([True, False], repeat=len(not_comm_nodes)))
 
         # Calculate the coherence for all possible combinations
