@@ -3,6 +3,7 @@ from coherence_networks import CoherenceNetworks
 from listener import ListenerModel
 from speaker import SpeakerModel
 import networkx as nx
+import random
 
 
 def conversation(belief_network, node_type_listener, node_truth_value_listener, node_type_speaker,
@@ -102,8 +103,7 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
     return belief_network
 
 
-def simulation(belief_network, node_type_listener, node_truth_value_listener, node_type_speaker,
-               node_truth_value_speaker):
+def simulation(belief_network, degree_overlap, degree_asymmetry):
     """
     Multiple conversations for the same parameter settings and the same belief networks (structure-wise).
     :param belief_network: graph; the graph containing the relevant nodes connected by edges with their
@@ -119,6 +119,48 @@ def simulation(belief_network, node_type_listener, node_truth_value_listener, no
     """
 
     # Two manipulations: degree of overlap of the own belief sets and degree of asymmetry within these overlapping sets
+
+    # First the degree of overlap between the sets of own nodes is set
+    n_nodes = belief_network.number_of_nodes()
+    if degree_overlap == 100:
+        node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
+        node_type_listener = node_type_speaker
+    elif degree_overlap == 50:
+        # Maximum of 60% can be own beliefs: first randomly choose a percentage under 60 and then randomly choose the
+        # corresponding amount of indices to put 'own' in
+        percentage = random.randint(1, 60)
+        indices_speaker_own = random.sample(list(range(n_nodes)), k=int((percentage/100)*n_nodes))
+        print("speaker_own: ", indices_speaker_own)
+        node_type_speaker = ["own" if n in indices_speaker_own else "inf" for n in range(n_nodes)]
+        indices_own = random.sample(indices_speaker_own, k=int(0.5*len(indices_speaker_own)))
+        print("indices own:", indices_own)
+        node_type_listener = ["own" if n in indices_own else None for n in range(n_nodes)]
+        print("node_type listener:", node_type_listener)
+        indices_inf = [i for i in range(len(node_type_speaker)) if node_type_speaker[i] == "inf"]
+        print("indices inf", indices_inf)
+        node_type_listener = ["inf" if node_type_listener.index(n) in indices_inf else n for n in node_type_listener]
+        print("node type listener", node_type_listener)
+        n_own = node_type_speaker.count("own")
+        n_own_left = n_own - len(indices_own)
+        indices_own_left = [node_type_listener.index(node) for node in node_type_listener if node is None]
+        print("indices own left", indices_own_left)
+        indices_own = random.sample(indices_own_left, k=n_own_left)
+        print(indices_own)
+        node_type_listener = ["own" if node_type_listener.index(n) in indices_own else n for n in node_type_listener]
+    elif degree_overlap == 0:
+        node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
+        indices_speaker_inf = [i for i in range(len(node_type_speaker)) if node_type_speaker[i] == "inf"]
+        n_own_speaker = len(node_type_speaker) - len(indices_speaker_inf)
+        indices_own_listener = random.sample(indices_speaker_inf, k=n_own_speaker)
+        node_type_listener = ["own" if i in indices_own_listener else "inf" for i in range(len(node_type_speaker))]
+
+    print("Node types speaker: ", node_type_speaker)
+    print("Node types listener: ", node_type_listener)
+
+
+    truth_value_speaker = None
+    truth_value_listener = None
+
 
     # The truth values for the belief belief_network are generated independently from each other and only the overlapping parts
     # of the own beliefs will be made the same and changed accordingly to the degree of asymmetry. This will be done by
@@ -143,7 +185,8 @@ def multi_runs(number_nodes, amount_edges, amount_positive_constraints):
 
 if __name__ == '__main__':
     belief_network = CoherenceNetworks(10, 'middle', 'middle').create_graph()
-    conversation(belief_network, ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
-                 [False, True, True, True, False, False, True, True, True, False],
-                 ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
-                 [True, False, True, True, False, True, True, False, True, False], [0, 1, 9, 3])
+    # conversation(belief_network, ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
+    #              [False, True, True, True, False, False, True, True, True, False],
+    #              ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
+    #              [True, False, True, True, False, True, True, False, True, False], [0, 1, 9, 3])
+    simulation(belief_network, 50, 0)
