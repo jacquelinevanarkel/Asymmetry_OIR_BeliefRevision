@@ -89,9 +89,9 @@ class CoherenceNetworks:
         # print("Number of edges: ", self.n_edges)
 
         # Draw the graph
-        colours = ["green" if x == "positive" else "red" for x in constraints]
-        nx.draw(graph, edge_color=colours, with_labels=True)
-        plt.show()
+        # colours = ["green" if x == "positive" else "red" for x in constraints]
+        # nx.draw(graph, edge_color=colours, with_labels=True)
+        # plt.show()
 
         return graph
 

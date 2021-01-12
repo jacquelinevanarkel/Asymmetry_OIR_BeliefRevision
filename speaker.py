@@ -36,7 +36,7 @@ class SpeakerModel:
 
         # If there are no nodes left to communicate, stop and indicate that nothing can be communicated
         if not not_comm_nodes:
-            return False, self.belief_network
+            return [], self.belief_network, None
 
         # For every combination of (subsets) of nodes, calculate the similarity after belief revision and divide over
         # the number of nodes
@@ -50,6 +50,7 @@ class SpeakerModel:
 
         # Perform belief revision for every combination and calculate the similarity and divide over the number of nodes
         optimisation = []
+        similarities = []
         for combination in combinations:
             network = self.belief_network.copy()
             network_listener = self.belief_revision(network, communicated_nodes=combination)
@@ -59,6 +60,7 @@ class SpeakerModel:
             for node in self.intention:
                 if network_listener.nodes[node]['truth_value'] == self.belief_network.nodes[node]['truth_value']:
                     similarity += 1
+            similarities.append(similarity)
             optimisation.append(similarity/len(combination))
 
         # The utterance is the combination with the highest optimisation
@@ -72,7 +74,7 @@ class SpeakerModel:
             utterance.append((index, self.belief_network.nodes[index]['truth_value']))
             self.belief_network.nodes[index]['type'] = 'com'
 
-        return utterance, self.belief_network, similarity
+        return utterance, self.belief_network, similarities[optimisation_index]
 
     def belief_revision(self, network, communicated_nodes=None):
         """
