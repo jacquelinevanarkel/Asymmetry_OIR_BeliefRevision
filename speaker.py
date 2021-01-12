@@ -18,10 +18,6 @@ class SpeakerModel:
         self.repair_request = repair_request
         self.intention = intention
 
-        # Initialise a similarity score to keep track of the similarity between the inferred intention and the
-        # speaker's intention
-        self.similarity = 0
-
     def communicate_beliefs(self):
         """
         Communicate a (set of) node(s), which will be chosen such that when a belief revision is performed
@@ -39,7 +35,7 @@ class SpeakerModel:
                           y['type'] == 'own']
 
         # If there are no nodes left to communicate, stop and indicate that nothing can be communicated
-        if not_comm_nodes is None:
+        if not not_comm_nodes:
             return False, self.belief_network
 
         # For every combination of (subsets) of nodes, calculate the similarity after belief revision and divide over
@@ -58,11 +54,12 @@ class SpeakerModel:
             network = self.belief_network.copy()
             network_listener = self.belief_revision(network, communicated_nodes=combination)
 
+            similarity = 0
             # Calculate similarity
             for node in self.intention:
                 if network_listener.nodes[node]['truth_value'] == self.belief_network.nodes[node]['truth_value']:
-                    self.similarity += 1
-            optimisation.append(self.similarity/len(combination))
+                    similarity += 1
+            optimisation.append(similarity/len(combination))
 
         # The utterance is the combination with the highest optimisation
         max_optimisation = max(optimisation)
@@ -75,7 +72,7 @@ class SpeakerModel:
             utterance.append((index, self.belief_network.nodes[index]['truth_value']))
             self.belief_network.nodes[index]['type'] = 'com'
 
-        return utterance, self.belief_network, self.similarity
+        return utterance, self.belief_network, similarity
 
     def belief_revision(self, network, communicated_nodes=None):
         """
@@ -126,8 +123,8 @@ class SpeakerModel:
         indices and truth values of node(s) when no confirmation could be given, else these lists are empty
         """
 
-        # Check whether the truth values of repair request match with the speaker's belief_network, if not, no confirmation can
-        # be given
+        # Check whether the truth values of repair request match with the speaker's belief_network, if not, no
+        # confirmation can be given
         confirmation = True
         for node in self.repair_request:
             if node[1] != self.belief_network.nodes[node[0]]['truth_value']:
@@ -143,8 +140,10 @@ class SpeakerModel:
                 repair.append((node[0], self.belief_network.nodes[node[0]]['truth_value']))
                 self.belief_network.nodes[node[0]]['type'] = 'com'
             clarification, self.belief_network, similarity = self.communicate_beliefs()
-
-        repair_solution = repair + clarification
+            repair_solution = repair + clarification
+        else:
+            repair_solution = repair
+            similarity = False
 
         return repair_solution, similarity
 
@@ -160,7 +159,7 @@ class SpeakerModel:
         for edge in list(network.edges(data='constraint')):
             if edge[2] == 'positive':
                 if network.nodes[edge[0]]['truth_value'] == \
-                        self.belief_network.nodes[edge[1]]['truth_value']:
+                        network.nodes[edge[1]]['truth_value']:
                     coherence += 1
                 else:
                     coherence -= 1

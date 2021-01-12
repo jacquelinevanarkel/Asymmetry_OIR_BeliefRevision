@@ -67,14 +67,14 @@ class ListenerModel:
 
         # If at least one node is flipped, belief revision has taken place and the coherence should be compared
         # with the previous belief_network before belief revision (trouble_identification)
-        print("Network after belief revision:\n", self.belief_network.nodes(data=True))
-        print("Network before belief revision:\n", network_history.nodes(data=True))
+        # print("Network after belief revision:\n", self.belief_network.nodes(data=True))
+        # print("Network before belief revision:\n", network_history.nodes(data=True))
         if not nx.is_isomorphic(self.belief_network, network_history, node_match=lambda x, y: x['truth_value'] ==
                                                                                                    y['truth_value']):
-            print("Trouble identification")
+            # print("Trouble identification")
             repair_initiation = self.trouble_identification()
         else:
-            print("No trouble identification")
+            # print("No trouble identification")
             repair_initiation = False
 
         return repair_initiation, self.belief_network
@@ -113,7 +113,7 @@ class ListenerModel:
         if self.coherence(self.belief_network) < self.coherence_history:
             repair_initiation = self.formulate_request()
         else:
-            print("Not formulating a request")
+            # print("Not formulating a request")
             repair_initiation = False
 
         return repair_initiation

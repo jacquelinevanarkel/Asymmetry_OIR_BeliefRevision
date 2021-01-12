@@ -4,6 +4,7 @@ from listener import ListenerModel
 from speaker import SpeakerModel
 import networkx as nx
 import random
+import pandas as pd
 
 
 def conversation(belief_network_speaker, belief_network_listener, intention):
@@ -15,18 +16,45 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
     :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
     types) connected by edges with their constraints as a belief belief_network for the listener
     :param intention: list; list with the indices of the nodes that form the speaker's intention
+    :return: dataframe; pandas dataframe containing the results of the conversation
     """
 
-    print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
-    print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+    # Initialise a dataframe to store the results in
+    results = pd.DataFrame(
+        columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
+                 "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
+                 "conversation state", "similarity", "utterance speaker", "repair request", "conversation ended max sim"])
+
+    # print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
+    # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+
+    # Store the starting conditions in the results
+    results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                                            belief_network_listener.nodes(data=True),
+                                                            belief_network_speaker.edges(data=True),
+                                                            belief_network_listener.edges(data=True), None, None,
+                                                            coherence(belief_network_speaker),
+                                                            coherence(belief_network_listener),
+                                                            None, None, "Start", None, None, None, False]
 
     # A conversation can consist of a maximum of the number of nodes interactions
-    for _ in range(belief_network.number_of_nodes()):
+    # Initialise a count for the number of times repair is initiated in a conversation
+    r = 0
+    for i in range(belief_network.number_of_nodes()):
 
         # Speaker communicates something
         utterance, belief_network_speaker, similarity = SpeakerModel(belief_network_speaker, intention).communicate_beliefs()
-        print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
-        print("Speaker communicates: ", utterance)
+        # print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
+        # print("Speaker communicates: ", utterance)
+
+        # Store results
+        results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                                            belief_network_listener.nodes(data=True),
+                                                            belief_network_speaker.edges(data=True),
+                                                            belief_network_listener.edges(data=True), None, None,
+                                                            coherence(belief_network_speaker),
+                                                            coherence(belief_network_listener),
+                                                            None, None, i, similarity, utterance, None, False]
 
         # Stop if the speaker has nothing left to say
         if utterance is None:
@@ -35,31 +63,122 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
         # Listener changes beliefs accordingly and initiates repair if necessary
         repair_request, belief_network_listener = ListenerModel(belief_network_listener, communicated_nodes=utterance)\
             .belief_revision()
-        print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
-        print("Repair request: ", repair_request)
+        # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+        # print("Repair request: ", repair_request)
+
+        # Store results
+        results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                                            belief_network_listener.nodes(data=True),
+                                                            belief_network_speaker.edges(data=True),
+                                                            belief_network_listener.edges(data=True), None, None,
+                                                            coherence(belief_network_speaker),
+                                                            coherence(belief_network_listener),
+                                                            None, None, i, None, None, repair_request, False]
 
         # If the listener initiates repair the speaker gives a repair solution
         if repair_request:
+            r += 1
             repair_solution, similarity = SpeakerModel(belief_network_speaker, intention, repair_request=repair_request)\
                 .repair_solution()
-            print("Repair solution: ", repair_solution)
+            # print("Repair solution: ", repair_solution)
+
+            confirmation = False
+            if repair_solution == repair_request:
+                confirmation = True
+
+            # Store results
+            results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                                                belief_network_listener.nodes(data=True),
+                                                                belief_network_speaker.edges(data=True),
+                                                                belief_network_listener.edges(data=True), None, None,
+                                                                coherence(belief_network_speaker),
+                                                                coherence(belief_network_listener),
+                                                                None, confirmation, i, similarity, repair_solution,
+                                                                repair_request, False]
 
             # The listener performs belief revision according to the repair solution from the speaker
             repair_request, belief_network_listener = ListenerModel(belief_network_listener,
                                                                     communicated_nodes=repair_solution)\
                 .belief_revision()
-            print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
-            print("Repair request after repair solution: ", repair_request)
+            # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+            # print("Repair request after repair solution: ", repair_request)
+
+            # Store results
+            results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                                                belief_network_listener.nodes(data=True),
+                                                                belief_network_speaker.edges(data=True),
+                                                                belief_network_listener.edges(data=True), None, None,
+                                                                coherence(belief_network_speaker),
+                                                                coherence(belief_network_listener),
+                                                                None, None, i, None, None,
+                                                                repair_request, False]
 
         # If the listener does not initiate repair and the similarity is maximised the conversation is ended
+        max_sim_end = False
         if not repair_request:
             maximum = len(intention)
             if similarity == maximum:
-                print("Conversation ended because maximum similarity is achieved")
+                max_sim_end = True
+                # Store results
+                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                                                    belief_network_listener.nodes(data=True),
+                                                                    belief_network_speaker.edges(data=True),
+                                                                    belief_network_listener.edges(data=True), None,
+                                                                    None,
+                                                                    coherence(belief_network_speaker),
+                                                                    coherence(belief_network_listener),
+                                                                    None, None, i, similarity, None,
+                                                                    repair_request, max_sim_end]
                 break
 
-    # Return: asymmetry solved/intention correctly communicated, number of times repair is initiated, coherence score
-    # per interaction, number of interactions per conversation, confirmation or disconfirmation in repair solution
+    # Add conversation info to results
+    results.intention_communicated = intention_communicated(belief_network_speaker, belief_network_listener, intention)
+    results.n_repair = r
+    results.n_interactions = i
+    pd.set_option("display.max_rows", None, "display.max_columns", None)
+    print(results)
+    return results
+
+def intention_communicated(belief_network_speaker, belief_network_listener, intention):
+    """
+    Returns whether the speaker's intention matches with the listener's nodes.
+    :param belief_network_speaker: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the speaker
+    :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the listener
+    :param intention: list; list with the indices of the nodes that form the speaker's intention
+    :return: boolean; whether the intention matches with the corresponding listener's nodes
+    """
+    for index in intention:
+        if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+            return False
+
+    return True
+
+def coherence(network):
+    """
+    Calculate coherence of a belief belief_network.
+    :return: float; coherence
+    """
+
+    # Initialise coherence
+    coherence = 0
+
+    for edge in list(network.edges(data='constraint')):
+        if edge[2] == 'positive':
+            if network.nodes[edge[0]]['truth_value'] == \
+                    network.nodes[edge[1]]['truth_value']:
+                coherence += 1
+            else:
+                coherence -= 1
+        elif edge[2] == 'negative':
+            if network.nodes[edge[0]]['truth_value'] == \
+                    network.nodes[edge[1]]['truth_value']:
+                coherence -= 1
+            else:
+                coherence += 1
+
+    return coherence
 
 def simulation(belief_network, degree_overlap, degree_asymmetry):
     """
@@ -70,20 +189,57 @@ def simulation(belief_network, degree_overlap, degree_asymmetry):
     the speaker and listener
     :param degree_asymmetry: int; either 0 (no asymmetry), 50 (50% asymmetry), or 100 (100% asymmetry) of the
     overlapping own beliefs of the speaker and listener
+    :return: dataframe; pandas dataframe containing the results of the simulation
     """
 
-    # Initialisation of the belief networks for the speaker and listener
-    # Two manipulations: degree of overlap of the own belief sets and degree of asymmetry within these overlapping sets
-    belief_network_speaker, belief_network_listener = initialisation_networks(belief_network, degree_overlap,
-                                                                              degree_asymmetry)
+    # Initialise a dataframe to store the results in
+    results = pd.DataFrame(
+        columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
+                 "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
+                 "conversation state", "similarity", "utterance speaker", "repair request",
+                 "conversation ended max sim"])
+
+    for _ in range(1):
+        # Initialisation of the belief networks for the speaker and listener
+        # Two manipulations: degree of overlap of the own belief sets and degree of asymmetry within these overlapping sets
+        belief_network_speaker, belief_network_listener = initialisation_networks(belief_network, degree_overlap,
+                                                                                  degree_asymmetry)
 
 
-    # Randomly generate an intention for the speaker
-    n_nodes = belief_network_speaker.number_of_nodes()
-    n_nodes_intention = random.randint(1, n_nodes)
-    intention = random.sample(list(range(n_nodes)), k=n_nodes_intention)
+        # Randomly generate an intention for the speaker
+        n_nodes = belief_network_speaker.number_of_nodes()
+        n_nodes_intention = random.randint(1, n_nodes)
+        intention = random.sample(list(range(n_nodes)), k=n_nodes_intention)
 
-    #conversation(belief_network_speaker, belief_network_listener, intention)
+        result = conversation(belief_network_speaker, belief_network_listener, intention)
+
+        # Add result to results dataframe
+        results.append(result)
+
+    return results
+
+def multi_runs(number_nodes, amount_edges, amount_positive_constraints):
+    """
+    Multiple simulations ran for different parameter settings and different belief networks (structure-wise).
+    :param number_nodes: int; the number of nodes in the belief_network
+    :param amount_edges: string; the amount of edges connecting the nodes in the belief_network (low, middle, high)
+    :param amount_positive_constraints: string; the amount of positive constraints connecting the nodes in the
+    belief_network (low, middle, high)
+    """
+
+    belief_network = CoherenceNetworks(number_nodes, amount_edges, amount_positive_constraints).create_graph()
+
+    degree = [0, 50, 100]
+    for i in range(3):
+        degree_overlap = degree[i]
+        for n in range(3):
+            degree_asymmetry = degree[n]
+            simulation(belief_network, degree_overlap, degree_asymmetry)
+
+    # Return: networks (speaker and listener) of every turn with all edge and node data, number of times repair is
+    # initiated, coherence score per turn, number of interactions per conversation (keep track when a conversation
+    # starts/ends as you already store the networks or a simple count?), confirmation or disconfirmation in repair
+    # solution
 
 def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     """
@@ -257,22 +413,6 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
 
     return belief_network
 
-def multi_runs(number_nodes, amount_edges, amount_positive_constraints):
-    """
-    Multiple simulations ran for different parameter settings and different belief networks (structure-wise).
-    :param number_nodes: int; the number of nodes in the belief_network
-    :param amount_edges: string; the amount of edges connecting the nodes in the belief_network (low, middle, high)
-    :param amount_positive_constraints: string; the amount of positive constraints connecting the nodes in the
-    belief_network (low, middle, high)
-    """
-
-    belief_network = CoherenceNetworks(10, 'high', 'middle').create_graph()
-
-    # Return: networks (speaker and listener) of every turn with all edge and node dataa, number of times repair is
-    # initiated, coherence score per turn, number of interactions per conversation (keep track when a conversation
-    # starts/ends as you already store the networks or a simple count?), confirmation or disconfirmation in repair
-    # solution
-
 if __name__ == '__main__':
     belief_network = CoherenceNetworks(10, 'middle', 'middle').create_graph()
     # conversation(belief_network, ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
@@ -280,3 +420,5 @@ if __name__ == '__main__':
     #              ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
     #              [True, False, True, True, False, True, True, False, True, False], [0, 1, 9, 3])
     simulation(belief_network, 50, 100)
+    #multi_runs(10, "middle", "middle")
+
