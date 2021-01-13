@@ -43,7 +43,7 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
     # A conversation can consist of a maximum of the number of nodes interactions
     # Initialise a count for the number of times repair is initiated in a conversation
     r = 0
-    for i in range(belief_network.number_of_nodes()):
+    for i in range(belief_network_speaker.number_of_nodes()):
 
         # Speaker communicates something
         utterance, belief_network_speaker, similarity = SpeakerModel(belief_network_speaker,
@@ -413,12 +413,3 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
         nx.set_node_attributes(belief_network, False, "repair")
 
     return belief_network
-
-
-if __name__ == '__main__':
-    belief_network = CoherenceNetworks(10, 'middle', 'middle').create_graph()
-    # conversation(belief_network, ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
-    #              [False, True, True, True, False, False, True, True, True, False],
-    #              ['own', 'own', None, None, 'inf', 'own', 'own', None, None, 'inf'],
-    #              [True, False, True, True, False, True, True, False, True, False], [0, 1, 9, 3])
-    simulation()
