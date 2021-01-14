@@ -145,8 +145,10 @@ class ListenerModel:
 
         # Calculate the coherence for all possible combinations
 
-        # Initialise a list to store the different coherence values in
+        # Initialise a list to store the different coherence values in and a list for the normalised coherence
+        # (normalised over the number of nodes)
         coherence_values = []
+        normalised_coherence = []
 
         for n in range(len(combinations)):
             # Initialise a count for the number of inferred nodes
@@ -154,11 +156,14 @@ class ListenerModel:
             for not_comm_node in not_comm_nodes:
                 network_copy.nodes[not_comm_node]['truth_value'] = combinations[n][i]
                 i += 1
-            coherence_values.append(self.coherence(network_copy))
+            coherence = self.coherence(network_copy)
+            coherence_values.append(coherence)
+            normalised_coherence.append(coherence / len(combinations[n]))
 
-        # Store all the indices of the maximum coherence values in a list and pick one randomly
-        max_coherence = max(coherence_values)
-        max_indices = [i for i in range(len(coherence_values)) if coherence_values[i] == max_coherence]
+        # Store all the indices of the maximum normalised coherence values in a list and pick one randomly
+        max_normalised_coherence = max(normalised_coherence)
+        max_indices = [i for i in range(len(normalised_coherence)) if normalised_coherence[i] ==
+                       max_normalised_coherence]
         nodes_truth_values_index = random.choice(max_indices)
 
         # Change the network copy to the truth value combination with the highest coherence
