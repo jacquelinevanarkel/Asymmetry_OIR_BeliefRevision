@@ -26,7 +26,7 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
         columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
                  "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
                  "conversation state", "similarity", "utterance speaker", "repair request",
-                 "conversation ended max sim", "intention", "asymmetry", "n_turns"])
+                 "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention"])
 
     # print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
     # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
@@ -46,7 +46,8 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                  coherence(belief_network_speaker),
                                  coherence(belief_network_listener),
                                  None, None, "Start", None, None, None, False, intention,
-                                 asymmetry_count(belief_network_speaker, belief_network_listener), t]
+                                 asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                 asymmetry_count(belief_network_speaker, belief_network_listener, intention=intention)]
 
     # A conversation can consist of a maximum of the number of nodes interactions
     # Initialise a count for the number of times repair is initiated in a conversation
@@ -68,7 +69,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                      coherence(belief_network_speaker),
                                      coherence(belief_network_listener),
                                      None, None, i, similarity, utterance, None, False, intention,
-                                     asymmetry_count(belief_network_speaker, belief_network_listener), t]
+                                     asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                     asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                     intention=intention)]
 
         # Stop if the speaker has nothing left to say
         if not utterance:
@@ -90,7 +93,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                      coherence(belief_network_speaker),
                                      coherence(belief_network_listener),
                                      None, None, i, None, None, repair_request, False, intention,
-                                     asymmetry_count(belief_network_speaker, belief_network_listener), t]
+                                     asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                     asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                     intention=intention)]
 
         # If the listener initiates repair the speaker gives a repair solution
         if repair_request:
@@ -113,7 +118,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                          coherence(belief_network_listener),
                                          None, confirmation, i, similarity, repair_solution,
                                          repair_request, False, intention,
-                                         asymmetry_count(belief_network_speaker, belief_network_listener), t]
+                                         asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                         asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                         intention=intention)]
 
             # The listener performs belief revision according to the repair solution from the speaker
             repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
@@ -131,7 +138,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                          coherence(belief_network_listener),
                                          None, None, i, None, None,
                                          repair_request, False, intention,
-                                         asymmetry_count(belief_network_speaker, belief_network_listener), t]
+                                         asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                         asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                         intention=intention)]
 
         # If the listener does not initiate repair and the similarity is maximised the conversation is ended
         max_sim_end = False
@@ -149,7 +158,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                              coherence(belief_network_listener),
                                              None, None, i, similarity, None,
                                              repair_request, max_sim_end, intention,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener), t]
+                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                             intention=intention)]
                 break
 
     # Add conversation info to results
@@ -176,21 +187,27 @@ def intention_communicated(belief_network_speaker, belief_network_listener, inte
 
     return True
 
-def asymmetry_count(belief_network_speaker, belief_network_listener):
+def asymmetry_count(belief_network_speaker, belief_network_listener, intention=None):
     """
     Counts the asymmetry between the belief network of the speaker and listener.
     :param belief_network_speaker: graph; the graph containing the relevant nodes (including their truth values and
     types) connected by edges with their constraints as a belief belief_network for the speaker
     :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
     types) connected by edges with their constraints as a belief belief_network for the listener
+    :param intention: list; the list containing the node indices of the intention of the speaker
     :return: int; the asymmetry of the networks
     """
 
     # Initialise a count for the asymmetry
     i = 0
-    for index in range(belief_network_speaker.number_of_nodes()):
-        if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
-            i += 1
+    if not intention:
+        for index in range(belief_network_speaker.number_of_nodes()):
+            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+                i += 1
+    else:
+        for index in intention:
+            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+                i += 1
 
     return i
 
@@ -230,7 +247,7 @@ def simulation():
         columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
                  "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
                  "conversation state", "similarity", "utterance speaker", "repair request",
-                 "conversation ended max sim", "intention", "asymmetry", "n_turns"])
+                 "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention"])
 
     # Initialise empty list to store the different arguments in
     speaker_network = []
@@ -480,4 +497,4 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
     return belief_network
 
 if __name__ == '__main__':
-    simulation()
+     simulation()

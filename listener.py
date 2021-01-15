@@ -1,6 +1,5 @@
 # Import packages
 import networkx as nx
-from coherence_networks import CoherenceNetworks
 import random
 import itertools
 
@@ -138,7 +137,7 @@ class ListenerModel:
                           y['type'] == 'own' and y['repair'] is False]
 
         # If there are no nodes that have not been communicated yet, break and return 'False' as a repair initiation
-        if not_comm_nodes is None:
+        if not not_comm_nodes:
             return False
 
         combinations = list(itertools.product([True, False], repeat=len(not_comm_nodes)))
