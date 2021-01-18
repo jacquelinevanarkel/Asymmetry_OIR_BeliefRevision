@@ -1,13 +1,14 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 # Read in data
 #path = Path('/Users/Jacqueline/Documents/Master_Thesis/Simulation')
 results = pd.read_pickle("results.p")
 
 # If you want to view the data, here are some options to view the entire dataframe
-#pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.max_colwidth', -1)
+pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.max_colwidth', -1)
 
 # Main manipulations: degree of overlap & degree of asymmetry --> effect on repair -->
 # repair effect on intention communicated? / degree asymmetry
@@ -75,3 +76,13 @@ plt.xlabel("Number of nodes")
 plt.ylim(0, 1)
 
 plt.show()
+
+# Calculate the mean utterance length of the speaker
+utterances = results["utterance speaker"].dropna()
+utterances["length"] = utterances.str.len()
+print(utterances["length"].mean())
+
+# Calculate the mean length of the repair request
+repair_df = results
+repair_df["length"] = repair_df["repair request"].str.len()
+print(repair_df["length"].mean())
