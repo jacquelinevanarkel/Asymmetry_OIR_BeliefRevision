@@ -77,6 +77,10 @@ plt.ylim(0, 1)
 
 plt.show()
 
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------- Mean lengths of utterances spoken by speaker and listener ------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
 # Calculate the mean utterance length of the speaker
 utterances = results["utterance speaker"].dropna()
 utterances["length"] = utterances.str.len()
@@ -86,3 +90,19 @@ print(utterances["length"].mean())
 repair_df = results
 repair_df["length"] = repair_df["repair request"].str.len()
 print(repair_df["length"].mean())
+
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------- Similarity speaker matches asymmetry in intention? ----------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Plot the different asymmetry levels of the intention when the conversation was ended because of max sim for degree of
+# overlap and asymmetry
+
+df2 = df.groupby(["asymmetry_intention", "overlap", "asymmetry"])["conversation ended max sim"].value_counts()\
+    .reset_index(name='Counts')
+
+g = sns.FacetGrid(df2, col="asymmetry_intention", col_wrap=3)
+g.map(sns.barplot, "asymmetry", "Counts", "overlap", order=[0, 50, 100], hue_order=[0, 50, 100])
+g.add_legend(title="Degree of overlap")
+plt.show()
+
