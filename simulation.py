@@ -259,7 +259,7 @@ def simulation():
     list_degree_overlap = []
     list_degree_asymmetry = []
 
-    for _ in range(1):
+    for _ in range(20):
         # Initialisation of the belief networks for the speaker and listener
 
         # First the possible combinations of amount of nodes, edges and positive constraints are used to generate a
