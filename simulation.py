@@ -237,9 +237,10 @@ def coherence(network):
     return coherence
 
 
-def simulation():
+def simulation(n_nodes):
     """
     Multiple conversations for the same parameter settings and the same belief networks (structure-wise).
+    :param n_nodes: list; a list containing the numbers of nodes to be used for the simulation
     """
 
     # Initialise a dataframe to store the results in
@@ -264,7 +265,6 @@ def simulation():
 
         # First the possible combinations of amount of nodes, edges and positive constraints are used to generate a
         # network
-        n_nodes = [8, 10, 12]
         for a in n_nodes:
             number_nodes = a
             amount = ["middle", "high"]
@@ -495,6 +495,3 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
         nx.set_node_attributes(belief_network, False, "repair")
 
     return belief_network
-
-if __name__ == '__main__':
-     simulation()
