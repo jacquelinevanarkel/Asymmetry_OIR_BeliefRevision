@@ -318,7 +318,7 @@ def simulation(n_nodes):
     pool.join()
 
     # Pickle the results
-    filename = "results.p"
+    filename = "results_" + str(n_nodes) + ".p"
     outfile = open(filename, 'wb')
     pickle.dump(results, outfile)
     outfile.close()
