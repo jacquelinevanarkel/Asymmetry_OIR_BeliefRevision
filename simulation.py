@@ -240,7 +240,7 @@ def coherence(network):
 def simulation(n_nodes):
     """
     Multiple conversations for the same parameter settings and the same belief networks (structure-wise).
-    :param n_nodes: list; a list containing the numbers of nodes to be used for the simulation
+    :param n_nodes: int; the number of nodes to be used for the simulation
     """
 
     # Initialise a dataframe to store the results in
@@ -263,42 +263,40 @@ def simulation(n_nodes):
     for _ in range(20):
         # Initialisation of the belief networks for the speaker and listener
 
-        # First the possible combinations of amount of nodes, edges and positive constraints are used to generate a
+        # First the possible combinations of the amount of edges and positive constraints are used to generate a
         # network
-        for a in n_nodes:
-            number_nodes = a
-            amount = ["middle", "high"]
-            for x in amount:
-                amount_edges = x
-                amount_positive_constraints = "middle"
-                belief_network = CoherenceNetworks(number_nodes, amount_edges, amount_positive_constraints).\
-                    create_graph()
+        amount = ["middle", "high"]
+        for x in amount:
+            amount_edges = x
+            amount_positive_constraints = "middle"
+            belief_network = CoherenceNetworks(n_nodes, amount_edges, amount_positive_constraints).\
+                create_graph()
 
-                # Then the possible combinations of the degree of overlap and asymmetry are used to initialise the
-                # network for the speaker and listener
-                degree = [0, 50, 100]
-                for i in degree:
-                    degree_overlap = i
-                    for n in degree:
-                        degree_asymmetry = n
-                        belief_network_speaker, belief_network_listener = initialisation_networks(belief_network,
-                                                                                                  degree_overlap,
-                                                                                                  degree_asymmetry)
-                        # Randomly generate an intention for the speaker
-                        n_nodes_intention = random.randint(int(0.25*number_nodes), int(0.75*number_nodes))
-                        intention = random.sample(list(range(number_nodes)), k=n_nodes_intention)
+            # Then the possible combinations of the degree of overlap and asymmetry are used to initialise the
+            # network for the speaker and listener
+            degree = [0, 50, 100]
+            for i in degree:
+                degree_overlap = i
+                for n in degree:
+                    degree_asymmetry = n
+                    belief_network_speaker, belief_network_listener = initialisation_networks(belief_network,
+                                                                                              degree_overlap,
+                                                                                              degree_asymmetry)
+                    # Randomly generate an intention for the speaker
+                    n_nodes_intention = random.randint(int(0.25*n_nodes), int(0.75*n_nodes))
+                    intention = random.sample(list(range(n_nodes)), k=n_nodes_intention)
 
-                        # Collect arguments
-                        speaker_network.append(belief_network_speaker)
-                        listener_network.append(belief_network_listener)
-                        intentions.append(intention)
+                    # Collect arguments
+                    speaker_network.append(belief_network_speaker)
+                    listener_network.append(belief_network_listener)
+                    intentions.append(intention)
 
-                        # Collect manipulations to store in dataframe
-                        list_n_nodes.append(number_nodes)
-                        list_amount_edges.append(amount_edges)
-                        list_amount_positive_constraints.append(amount_positive_constraints)
-                        list_degree_overlap.append(degree_overlap)
-                        list_degree_asymmetry.append(degree_asymmetry)
+                    # Collect manipulations to store in dataframe
+                    list_n_nodes.append(n_nodes)
+                    list_amount_edges.append(amount_edges)
+                    list_amount_positive_constraints.append(amount_positive_constraints)
+                    list_degree_overlap.append(degree_overlap)
+                    list_degree_asymmetry.append(degree_asymmetry)
 
 
     # Run a conversation for the specified parameter settings
@@ -313,7 +311,8 @@ def simulation(n_nodes):
         result[index]["overlap"] = [list_degree_overlap[index]] * len(result[index])
         result[index]["asymmetry"] = [list_degree_asymmetry[index]] * len(result[index])
         result[index]["simulation_number"] = [index] * len(result[index])
-        result[index]["ended max sim"] = [result[index].loc[result[index].index[-1], "conversation ended max sim"]] * len(result[index])
+        result[index]["ended max sim"] = [result[index].loc[result[index].index[-1], "conversation ended max sim"]] \
+                                         * len(result[index])
         results = results.append(result[index])
     pool.close()
     pool.join()
