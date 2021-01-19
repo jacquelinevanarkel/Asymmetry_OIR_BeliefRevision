@@ -166,7 +166,7 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
     # Add conversation info to results
     results.intention_communicated = intention_communicated(belief_network_speaker, belief_network_listener, intention)
     results.n_repair = r
-    results.n_interactions = i+1
+    results.n_interactions = i + 1
 
     return results
 
@@ -187,6 +187,7 @@ def intention_communicated(belief_network_speaker, belief_network_listener, inte
 
     return True
 
+
 def asymmetry_count(belief_network_speaker, belief_network_listener, intention=None):
     """
     Counts the asymmetry between the belief network of the speaker and listener.
@@ -202,14 +203,17 @@ def asymmetry_count(belief_network_speaker, belief_network_listener, intention=N
     i = 0
     if not intention:
         for index in range(belief_network_speaker.number_of_nodes()):
-            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index][
+                'truth_value']:
                 i += 1
     else:
         for index in intention:
-            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index][
+                'truth_value']:
                 i += 1
 
     return i
+
 
 def coherence(network):
     """
@@ -237,10 +241,11 @@ def coherence(network):
     return coherence
 
 
-def simulation(n_nodes):
+def simulation(n_nodes, n_runs):
     """
     Multiple conversations for the same parameter settings and the same belief networks (structure-wise).
     :param n_nodes: int; the number of nodes to be used for the simulation
+    :param n_runs: int; the number of runs for every simulation (combination of parameter settings)
     """
 
     # Initialise a dataframe to store the results in
@@ -260,8 +265,7 @@ def simulation(n_nodes):
     list_degree_overlap = []
     list_degree_asymmetry = []
 
-    for _ in range(20):
-        # Initialisation of the belief networks for the speaker and listener
+    for _ in range(n_runs):
 
         # First the possible combinations of the amount of edges and positive constraints are used to generate a
         # network
@@ -269,7 +273,7 @@ def simulation(n_nodes):
         for x in amount:
             amount_edges = x
             amount_positive_constraints = "middle"
-            belief_network = CoherenceNetworks(n_nodes, amount_edges, amount_positive_constraints).\
+            belief_network = CoherenceNetworks(n_nodes, amount_edges, amount_positive_constraints). \
                 create_graph()
 
             # Then the possible combinations of the degree of overlap and asymmetry are used to initialise the
@@ -283,7 +287,7 @@ def simulation(n_nodes):
                                                                                               degree_overlap,
                                                                                               degree_asymmetry)
                     # Randomly generate an intention for the speaker
-                    n_nodes_intention = random.randint(int(0.25*n_nodes), int(0.75*n_nodes))
+                    n_nodes_intention = random.randint(int(0.25 * n_nodes), int(0.75 * n_nodes))
                     intention = random.sample(list(range(n_nodes)), k=n_nodes_intention)
 
                     # Collect arguments
@@ -297,7 +301,6 @@ def simulation(n_nodes):
                     list_amount_positive_constraints.append(amount_positive_constraints)
                     list_degree_overlap.append(degree_overlap)
                     list_degree_asymmetry.append(degree_asymmetry)
-
 
     # Run a conversation for the specified parameter settings
     pool = multiprocessing.Pool()
