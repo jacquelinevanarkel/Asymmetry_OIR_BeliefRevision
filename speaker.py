@@ -142,7 +142,7 @@ class SpeakerModel:
             clarification, self.belief_network, similarity = self.communicate_beliefs()
             repair_solution = repair + clarification
         else:
-            repair_solution = repair
+            repair_solution = self.repair_request
             similarity = False
 
         return repair_solution, similarity

@@ -34,11 +34,11 @@ class CoherenceNetworks:
 
         # The maximum number of edges is the number of nodes^2, forming an upper bound.
         if self.a_edges == "low":
-            n_edges = round(random.uniform(((self.n_nodes - 1)/(self.n_nodes**2)), 0.34) * (self.n_nodes**2))
+            n_edges = round(random.uniform(((self.n_nodes - 1)/(self.n_nodes**2)), 0.333) * (self.n_nodes**2))
         elif self.a_edges == "middle":
-            n_edges = round(random.uniform(0.35, 0.69) * (self.n_nodes**2))
+            n_edges = round(random.uniform(0.34, 0.666) * (self.n_nodes**2))
         elif self.a_edges == "high":
-            n_edges = round(random.uniform(0.70, 1.0) * (self.n_nodes**2))
+            n_edges = round(random.uniform(0.67, 1.0) * (self.n_nodes**2))
         else:
             raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
 
@@ -52,11 +52,11 @@ class CoherenceNetworks:
         """
 
         if self.a_constraint_pos == "low":
-            prob_pos_edges = random.uniform(0, 0.34)
+            prob_pos_edges = random.uniform(0, 0.333)
         elif self.a_constraint_pos == "middle":
-            prob_pos_edges = random.uniform(0.35, 0.69)
+            prob_pos_edges = random.uniform(0.34, 0.666)
         elif self.a_constraint_pos == "high":
-            prob_pos_edges = random.uniform(0.70, 1)
+            prob_pos_edges = random.uniform(0.67, 1)
         else:
             raise ValueError("Amount of positive constraints must be either 'low', 'middle' or 'high'")
 

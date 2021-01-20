@@ -32,7 +32,7 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
     # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
 
     # Initialise the listener belief network in order to make inferences before the speaker communicates something
-    # Listener changes beliefs accordingly and initiates repair if necessary
+    # Listener changes beliefs accordingly
     repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy()).belief_revision()
 
     # Initialise a count for the number of turns taken in a conversation
@@ -190,7 +190,7 @@ def intention_communicated(belief_network_speaker, belief_network_listener, inte
 
 def asymmetry_count(belief_network_speaker, belief_network_listener, intention=None):
     """
-    Counts the asymmetry between the belief network of the speaker and listener.
+    Counts the asymmetry using the Hamming distance between the belief network of the speaker and listener.
     :param belief_network_speaker: graph; the graph containing the relevant nodes (including their truth values and
     types) connected by edges with their constraints as a belief belief_network for the speaker
     :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
@@ -203,13 +203,11 @@ def asymmetry_count(belief_network_speaker, belief_network_listener, intention=N
     i = 0
     if not intention:
         for index in range(belief_network_speaker.number_of_nodes()):
-            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index][
-                'truth_value']:
+            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
                 i += 1
     else:
         for index in intention:
-            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index][
-                'truth_value']:
+            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
                 i += 1
 
     return i
@@ -256,9 +254,9 @@ def simulation(n_nodes, n_runs):
                  "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention"])
 
     # Initialise empty list to store the different arguments in
-    speaker_network = []
-    listener_network = []
-    intentions = []
+    list_speaker_network = []
+    list_listener_network = []
+    list_intentions = []
     list_n_nodes = []
     list_amount_edges = []
     list_amount_positive_constraints = []
@@ -291,9 +289,9 @@ def simulation(n_nodes, n_runs):
                     intention = random.sample(list(range(n_nodes)), k=n_nodes_intention)
 
                     # Collect arguments
-                    speaker_network.append(belief_network_speaker)
-                    listener_network.append(belief_network_listener)
-                    intentions.append(intention)
+                    list_speaker_network.append(belief_network_speaker)
+                    list_listener_network.append(belief_network_listener)
+                    list_intentions.append(intention)
 
                     # Collect manipulations to store in dataframe
                     list_n_nodes.append(n_nodes)
@@ -304,10 +302,10 @@ def simulation(n_nodes, n_runs):
 
     # Run a conversation for the specified parameter settings
     pool = multiprocessing.Pool()
-    arguments = zip(speaker_network, listener_network, intentions)
+    arguments = zip(list_speaker_network, list_listener_network, list_intentions)
     arg_list = list(arguments)
     result = pool.starmap(conversation, arg_list)
-    for index in range(len(intentions)):
+    for index in range(len(list_intentions)):
         result[index]["n_nodes"] = [list_n_nodes[index]] * len(result[index])
         result[index]["amount_edges"] = [list_amount_edges[index]] * len(result[index])
         result[index]["amount_pos_constraint"] = [list_amount_positive_constraints[index]] * len(result[index])
@@ -345,19 +343,22 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     # First the degree of overlap between the sets of own nodes is set
     n_nodes = belief_network.number_of_nodes()
     if degree_overlap == 100:
-        # Choose randomly for the speaker which nodes are own beliefs and inferred beliefs
+        # Choose randomly for the speaker which nodes are own beliefs and inferred beliefs with a minimum of 1 own
+        # belief node
         node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
+        if "own" not in node_type_speaker:
+            index = random.randrange(len(node_type_speaker))
+            node_type_speaker[index] = "own"
         # Copy the types for the listener as the overlap is 100%
         node_type_listener = node_type_speaker
     elif degree_overlap == 50:
         # Maximum of 60% can be own beliefs: first randomly choose a percentage under 60 and then randomly choose the
         # corresponding amount of indices to put 'own' in
-        percentage = random.randint(1, 60)
-        k = int((percentage / 100) * n_nodes)
-
         # You need at least two own beliefs in order to have 50% overlap
-        if k < 2:
-            k = 2
+        k = 0
+        while k < 2:
+            percentage = random.randint(1, 60)
+            k = int((percentage / 100) * n_nodes)
 
         # Here the indices for the speaker's own beliefs are randomly chosen
         indices_speaker_own = random.sample(list(range(n_nodes)), k=k)
@@ -393,9 +394,12 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
         for index in indices_own:
             node_type_listener[index] = "own"
     elif degree_overlap == 0:
-        # A maximum of half of the beliefs can be own in order not to have any overlap
-        percentage = random.randint(1, 50)
-        k = int((percentage / 100) * n_nodes)
+        # A maximum of half of the beliefs can be own in order not to have any overlap and you need at least one own
+        # belief
+        k = 0
+        while k < 1:
+            percentage = random.randint(1, 50)
+            k = int((percentage / 100) * n_nodes)
 
         # Here the indices for the speaker's own beliefs are randomly chosen
         indices_speaker_own = random.sample(list(range(n_nodes)), k=k)
@@ -424,25 +428,11 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     truth_value_speaker = random.choices([True, False], k=n_nodes)
     truth_value_listener = random.choices([True, False], k=n_nodes)
 
-    if degree_overlap == 100:
-        # Make the truth values of the overlapping own beliefs the same
-        indices_speaker_own = [i for i in range(len(node_type_speaker)) if node_type_speaker[i] == "own"]
-        for index in indices_speaker_own:
-            if truth_value_speaker[index] != truth_value_listener[index]:
-                truth_value_listener[index] = truth_value_speaker[index]
-        # If the degree of asymmetry is 100, change all the listener's overlapping own truth values to the opposite
-        # of the speaker's
-        if degree_asymmetry == 100:
-            for index in indices_speaker_own:
-                truth_value_listener[index] = not truth_value_speaker[index]
-        # If the degree of asymmetry is 50, change half of the listener's overlapping own truth values to the opposite
-        # of the speaker's
-        if degree_asymmetry == 50:
-            k = int(len(indices_speaker_own) / 2)
-            flip_indices = random.sample(indices_speaker_own, k=k)
-            for index in flip_indices:
-                truth_value_listener[index] = not truth_value_speaker[index]
-    if degree_overlap == 50:
+    indices_own_shared = []
+    for index in range(len(node_type_speaker)):
+        if node_type_speaker[index] == node_type_listener[index] and node_type_speaker[index] =="own":
+            indices_own_shared.append(index)
+
         # Make the truth values of the overlapping own beliefs the same
         for index in indices_own_shared:
             if truth_value_speaker[index] != truth_value_listener[index]:
