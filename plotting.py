@@ -4,7 +4,13 @@ import pandas as pd
 import numpy as np
 
 # Read in data
-#path = Path('/Users/Jacqueline/Documents/Master_Thesis/Simulation')
+# results_8 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run1/results_8.p")
+# results_10 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run1/results_10.p")
+results_12 = pd.read_pickle("results_12.p")
+# print(results_8.head())
+# print(results_10.columns)
+# results = pd.concat([results_8, results_10])
+
 results = pd.read_pickle("results.p")
 
 # If you want to view the data, here are some options to view the entire dataframe
