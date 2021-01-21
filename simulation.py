@@ -428,27 +428,28 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     truth_value_speaker = random.choices([True, False], k=n_nodes)
     truth_value_listener = random.choices([True, False], k=n_nodes)
 
+    # Create a list which contains all the indices of the overlapping own beliefs
     indices_own_shared = []
     for index in range(len(node_type_speaker)):
-        if node_type_speaker[index] == node_type_listener[index] and node_type_speaker[index] =="own":
+        if node_type_speaker[index] == node_type_listener[index] and node_type_speaker[index] == "own":
             indices_own_shared.append(index)
 
-        # Make the truth values of the overlapping own beliefs the same
+    # Make the truth values of the overlapping own beliefs the same
+    for index in indices_own_shared:
+        if truth_value_speaker[index] != truth_value_listener[index]:
+            truth_value_listener[index] = truth_value_speaker[index]
+    # If the degree of asymmetry is 100, change all the listener's overlapping own truth values to the opposite
+    # of the speaker's
+    if degree_asymmetry == 100:
         for index in indices_own_shared:
-            if truth_value_speaker[index] != truth_value_listener[index]:
-                truth_value_listener[index] = truth_value_speaker[index]
-        # If the degree of asymmetry is 100, change all the listener's overlapping own truth values to the opposite
-        # of the speaker's
-        if degree_asymmetry == 100:
-            for index in indices_own_shared:
-                truth_value_listener[index] = not truth_value_speaker[index]
-        # If the degree of asymmetry is 50, change half of the listener's overlapping own truth values to the opposite
-        # of the speaker's
-        if degree_asymmetry == 50:
-            k = int(len(indices_own_shared) / 2)
-            flip_indices = random.sample(indices_own_shared, k=k)
-            for index in flip_indices:
-                truth_value_listener[index] = not truth_value_speaker[index]
+            truth_value_listener[index] = not truth_value_speaker[index]
+    # If the degree of asymmetry is 50, change half of the listener's overlapping own truth values to the opposite
+    # of the speaker's
+    if degree_asymmetry == 50:
+        k = int(len(indices_own_shared) / 2)
+        flip_indices = random.sample(indices_own_shared, k=k)
+        for index in flip_indices:
+            truth_value_listener[index] = not truth_value_speaker[index]
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- Initialisation ---------------------------------------------------
