@@ -6,12 +6,25 @@ import numpy as np
 # Read in data
 # results_8 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run1/results_8.p")
 # results_10 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run1/results_10.p")
-results_12 = pd.read_pickle("results_12.p")
 # print(results_8.head())
 # print(results_10.columns)
 # results = pd.concat([results_8, results_10])
 
-results = pd.read_pickle("results.p")
+results_8 = pd.read_pickle("results_8.p")
+results_10 = pd.read_pickle("results_10.p")
+results_12 = pd.read_pickle("results_12.p")
+results_8_10_12 = pd.read_pickle("results.p")
+results = pd.concat([results_8_10_12, results_8, results_10, results_12])
+
+# First select the last row of information of the conversation
+df8 = results_8.drop_duplicates(subset=["simulation_number"], keep='last')
+df10 = results_10.drop_duplicates(subset=["simulation_number"], keep='last')
+df12 = results_12.drop_duplicates(subset=["simulation_number"], keep='last')
+df8_10_12 = results_8_10_12.drop_duplicates(subset=["simulation_number"], keep='last')
+df = pd.concat([df8_10_12, df8, df10, df12])
+print("n results 8 nodes: ", len(df[df['n_nodes'] == 8]))
+print("n results 10 nodes: ", len(df[df['n_nodes'] == 10]))
+print("n results 12 nodes: ", len(df[df['n_nodes'] == 12]))
 
 # If you want to view the data, here are some options to view the entire dataframe
 pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.max_colwidth', -1)
@@ -25,9 +38,6 @@ pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.ma
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Plot: degree of overlap & degree of asymmetry --> n_repair
-
-# First select the last row of information of the conversation
-df = results.drop_duplicates(subset=["simulation_number"], keep='last')
 
 fig, ax = plt.subplots(1,2)
 
@@ -45,6 +55,17 @@ ax[1].set_ylabel("Mean number of times intention communicated")
 ax[1].set_xlabel("Degree of overlap")
 ax[1].set_ylim(0,1)
 
+plt.show()
+
+# Version 2: how often agents initiate repair (x-axis) for different success rates (asymmetry in intention)
+intention_count = df.groupby(['n_repair'])['asymmetry_intention'].value_counts()\
+    .reset_index(name='Counts')
+sns.barplot(x="n_repair", y="Counts", hue="asymmetry_intention", data=intention_count)
+plt.title("Number of times the conversation is ended with a certain asymmetry level of the intention for different "
+          "number of times repair is initiated")
+plt.ylabel("Counts asymmetry of intention")
+plt.xlabel("Number of times repair is initiated")
+plt.legend(loc='upper right')
 plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -90,12 +111,12 @@ plt.show()
 # Calculate the mean utterance length of the speaker
 utterances = results["utterance speaker"].dropna()
 utterances["length"] = utterances.str.len()
-print(utterances["length"].mean())
+print("Mean utterance length :", utterances["length"].mean())
 
 # Calculate the mean length of the repair request
 repair_df = results
 repair_df["length"] = repair_df["repair request"].str.len()
-print(repair_df["length"].mean())
+print("Mean repair request length: ", repair_df["length"].mean())
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- Similarity speaker matches asymmetry in intention? ----------------------------------
