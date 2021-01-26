@@ -2,6 +2,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import itertools
 
 # Read in data
 # Simulation run 1
@@ -98,12 +99,40 @@ plt.show()
 
 # Calculate the mean asymmetry (of the whole network) for every turn when repair is initiated
 results['index1'] = results.index
+results = results.fillna(value=np.nan)
+results.replace(False, np.nan)
+
+conditions = [(results['conversation state'] == 0) & (results['n_turns'] == 1),
+              (results['conversation state'] == 0) & (results['n_turns'] == 2),
+              (results['conversation state'] == 0) & (results['n_turns'] == 1) & (results['repair request'].isnull().values.any() or results['repair request'] is False or results['repair request'] == []),
+              (results['conversation state'] == 0) & (results['n_turns'] == 3) & (results['utterance speaker'] != np.nan),
+              (results['conversation state'] == 0) & (results['n_turns'] == 3) & (results['utterance speaker'] == np.nan),
+              (results['conversation state'] == 1) & (results['n_turns'] == 1),
+              (results['conversation state'] == 1) & (results['n_turns'] == 2),
+              (results['conversation state'] == 1) & (results['n_turns'] == 1) & (results['repair request'] == np.nan or results['repair request'] is False or results['repair request'] == []),
+              (results['conversation state'] == 1) & (results['n_turns'] == 3) & (results['utterance speaker'] is not
+                                                                                  None),
+              (results['conversation state'] == 1) & (results['n_turns'] == 3) & (results['utterance speaker'] is None),
+              (results['conversation state'] == 2) & (results['n_turns'] == 1),
+              (results['conversation state'] == 2) & (results['n_turns'] == 2),
+              (results['conversation state'] == 2) & (results['n_turns'] == 1) & (results['repair request'] == np.nan or results['repair request'] is False or results['repair request'] == []),
+              (results['conversation state'] == 2) & (results['n_turns'] == 3) & (results['utterance speaker'] is not
+                                                                                  None),
+              (results['conversation state'] == 2) & (results['n_turns'] == 3) & (results['utterance speaker'] is None)
+]
+values = ['initialisation', 'listener update utterance', 'listener update utterance no repair', 'speaker update repair',
+          'listener update solution', 'initialisation 2', 'listener update utterance 2',
+          'listener update utterance no repair 2', 'speaker update repair 2', 'listener update solution 2',
+          'initialisation 3', 'listener update utterance 3', 'listener update utterance no repair 3',
+          'speaker update repair 3', 'listener update solution 3']
+results['state'] = np.select(conditions, values)
+
 results['asymmetry_count'] = results['asymmetry_count'].astype(int)
 
-asymmetry_repair = results.groupby(["n_turns", "n_repair", "index1"], as_index=False)['asymmetry_count'].mean()
+asymmetry_repair = results.groupby(["n_turns", "n_repair", "state", "conversation state"], as_index=False)['asymmetry_count'].mean()
 print(asymmetry_repair)
 
-sns.lineplot(x="index1", y="asymmetry_count", hue="n_repair", data=asymmetry_repair)
+sns.lineplot(x="state", y="asymmetry_count", hue="n_repair", data=asymmetry_repair)
 
 plt.title("Mean asymmetry over turns with and without repair initiated")
 plt.ylabel("Asymmetry")
