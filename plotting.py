@@ -98,62 +98,71 @@ plt.show()
 # Plot: asymmetry intention over time
 
 # Calculate the mean asymmetry (of the whole network) for every turn when repair is initiated
-results['index1'] = results.index
-results = results.fillna(value=np.nan)
-results.replace(False, np.nan)
-
-conditions = [(results['conversation state'] == 0) & (results['n_turns'] == 1),
-              (results['conversation state'] == 0) & (results['n_turns'] == 2),
-              (results['conversation state'] == 0) & (results['n_turns'] == 1) & (results['repair request'].isnull().values.any() or results['repair request'] is False or results['repair request'] == []),
-              (results['conversation state'] == 0) & (results['n_turns'] == 3) & (results['utterance speaker'] != np.nan),
-              (results['conversation state'] == 0) & (results['n_turns'] == 3) & (results['utterance speaker'] == np.nan),
-              (results['conversation state'] == 1) & (results['n_turns'] == 1),
-              (results['conversation state'] == 1) & (results['n_turns'] == 2),
-              (results['conversation state'] == 1) & (results['n_turns'] == 1) & (results['repair request'] == np.nan or results['repair request'] is False or results['repair request'] == []),
-              (results['conversation state'] == 1) & (results['n_turns'] == 3) & (results['utterance speaker'] is not
-                                                                                  None),
-              (results['conversation state'] == 1) & (results['n_turns'] == 3) & (results['utterance speaker'] is None),
-              (results['conversation state'] == 2) & (results['n_turns'] == 1),
-              (results['conversation state'] == 2) & (results['n_turns'] == 2),
-              (results['conversation state'] == 2) & (results['n_turns'] == 1) & (results['repair request'] == np.nan or results['repair request'] is False or results['repair request'] == []),
-              (results['conversation state'] == 2) & (results['n_turns'] == 3) & (results['utterance speaker'] is not
-                                                                                  None),
-              (results['conversation state'] == 2) & (results['n_turns'] == 3) & (results['utterance speaker'] is None)
-]
-values = ['initialisation', 'listener update utterance', 'listener update utterance no repair', 'speaker update repair',
-          'listener update solution', 'initialisation 2', 'listener update utterance 2',
-          'listener update utterance no repair 2', 'speaker update repair 2', 'listener update solution 2',
-          'initialisation 3', 'listener update utterance 3', 'listener update utterance no repair 3',
-          'speaker update repair 3', 'listener update solution 3']
-results['state'] = np.select(conditions, values)
-
-results['asymmetry_count'] = results['asymmetry_count'].astype(int)
-
-asymmetry_repair = results.groupby(["n_turns", "n_repair", "state", "conversation state"], as_index=False)['asymmetry_count'].mean()
-print(asymmetry_repair)
-
-sns.lineplot(x="state", y="asymmetry_count", hue="n_repair", data=asymmetry_repair)
-
-plt.title("Mean asymmetry over turns with and without repair initiated")
-plt.ylabel("Asymmetry")
-plt.xlabel("Turn number")
-
-plt.show()
+# results['index1'] = results.index
+# results = results.fillna(value=np.nan)
+#
+# conditions = [(results['conversation state'] == 0) & (results['n_turns'] == 1),
+#               (results['conversation state'] == 0) & (results['n_turns'] == 2),
+#               (results['conversation state'] == 0) & (results['n_turns'] == 1) & (results['repair request'] is False),
+#               (results['conversation state'] == 0) & (results['n_turns'] == 3) & (results['utterance speaker'] != np.nan),
+#               (results['conversation state'] == 0) & (results['n_turns'] == 3) & (results['utterance speaker'].isna()),
+#
+#               (results['conversation state'] == 1) & (),
+#               (results['conversation state'] == 1) & (results['utterance speaker'].isna()) & (results['repair request'].isna()),
+#               (results['conversation state'] == 1) & (results['n_turns'] == 1) & (results['repair request'] is False),
+#               (results['conversation state'] == 1) & (results['n_turns'] == 3) & (results['utterance speaker'] is not
+#                                                                                   None),
+#               (results['conversation state'] == 1) & (results['n_turns'] == 3) & (results['utterance speaker'].isna()),
+#
+#               (results['conversation state'] == 2) & (results['n_turns'] == 1),
+#               (results['conversation state'] == 2) & (results['n_turns'] == 2),
+#               (results['conversation state'] == 2) & (results['n_turns'] == 1) & (results['repair request'] is False),
+#               (results['conversation state'] == 2) & (results['n_turns'] == 3) & (results['utterance speaker'] is not
+#                                                                                   None),
+#               (results['conversation state'] == 2) & (results['n_turns'] == 3) & (results['utterance speaker'].isna())
+# ]
+#
+# values = ['initialisation', 'listener update utterance', 'listener update utterance no repair', 'speaker update repair',
+#           'listener update solution', 'initialisation 2', 'listener update utterance 2',
+#           'listener update utterance no repair 2', 'speaker update repair 2', 'listener update solution 2',
+#           'initialisation 3', 'listener update utterance 3', 'listener update utterance no repair 3',
+#           'speaker update repair 3', 'listener update solution 3']
+# results['state'] = np.select(conditions, values)
+#
+# results['asymmetry_count'] = results['asymmetry_count'].astype(int)
+#
+# asymmetry_repair = results.groupby(["n_turns", "n_repair", "state", "conversation state"], as_index=False)['asymmetry_count'].mean()
+# print(asymmetry_repair)
+#
+# sns.lineplot(x="state", y="asymmetry_count", hue="n_repair", data=asymmetry_repair)
+#
+# plt.title("Mean asymmetry over turns with and without repair initiated")
+# plt.ylabel("Asymmetry")
+# plt.xlabel("Turn number")
+#
+# plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------- The mean intention communicated for different amounts of nodes and edges in the network ---------------
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Plot: number of nodes & number of edges of intention communicated (/asymmetry in intention?)
-df_intention = df.groupby(['n_nodes', 'amount_edges'])['intention_communicated'].value_counts(normalize=True)\
-    .reset_index(name='Counts')
-df_intention_true = df_intention[df_intention["intention_communicated"] == True]
+# df_intention = df.groupby(['n_nodes', 'amount_edges'])['intention_communicated'].value_counts(normalize=True)\
+#     .reset_index(name='Counts')
+# df_intention_true = df_intention[df_intention["intention_communicated"] == True]
+# print(df_intention_true)
 
-sns.barplot(x="n_nodes", y="Counts", hue="amount_edges", data=df_intention_true)
+# Compute chance levels for every node type
+nodes_8 = 0.5**(0.75 * 8)
+nodes_10 = 0.5**(0.75 * 10)
+nodes_12 = 0.5**(0.75 * 12)
+
+sns.barplot(x="n_nodes", y="intention_communicated", hue="amount_edges", data=df)
 plt.title("Mean intention communicated for different amounts of nodes and edges in the network")
 plt.ylabel("Mean intention communicated")
 plt.xlabel("Number of nodes")
 plt.ylim(0, 1)
+plt.hlines(y=(nodes_8, nodes_10, nodes_12), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
 
 plt.show()
 
@@ -177,12 +186,21 @@ print("Mean repair request length: ", repair_df["length"].mean())
 
 # Plot the different asymmetry levels of the intention when the conversation was ended because of max sim for degree of
 # overlap and asymmetry
+df['intention length'] = df['intention'].str.len()
+df['normalised asymmetry'] = df['asymmetry_intention']/df['intention length']
+df['normalised asymmetry'] = df['normalised asymmetry'].astype(float)
 
-df2 = df.groupby(["asymmetry_intention", "overlap", "asymmetry"])["conversation ended max sim"].value_counts()\
-    .reset_index(name='Counts')
+# sns.violinplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df)
+# sns.stripplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df, dodge=True)
+g = sns.catplot(x="asymmetry", y="normalised asymmetry", hue="overlap", col="n_nodes", kind="violin", data=df, legend_out=True)
+# plt.title("Degree of \n overlap")
+# plt.ylabel("Normalised asymmetry intention")
+# plt.xlabel("Degree of asymmetry")
+g.set_xlabels('Degree of asymmetry')
+g.set_ylabels('Normalised asymmetry intention')
+g._legend.set_title("Degree of \n overlap")
+new_labels = ['0%', '50%', '100%']
+for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
 
-g = sns.FacetGrid(df2, col="asymmetry_intention", col_wrap=3)
-g.map(sns.barplot, "asymmetry", "Counts", "overlap", order=[0, 50, 100], hue_order=[0, 50, 100])
-g.add_legend(title="Degree of overlap")
 plt.show()
 
