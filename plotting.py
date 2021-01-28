@@ -1,3 +1,5 @@
+from typing import Union
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -5,20 +7,18 @@ import numpy as np
 import itertools
 
 # Read in data
-# Simulation run 1
-results_8_10_12 = pd.read_pickle("results.p")
 
-# Simulation run 2
+# Simulation run 1
 results_8 = pd.read_pickle("results_8.p")
 results_10 = pd.read_pickle("results_10.p")
 results_12 = pd.read_pickle("results_12.p")
 
-# Simulation run 3
-results_8_3 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_8.p")
-results_10_3 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_10.p")
-results_12_3 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_12.p")
+# Simulation run 2
+results_8_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_8.p")
+results_10_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_10.p")
+results_12_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_12.p")
 
-results = pd.concat([results_8_10_12, results_8, results_10, results_12, results_8_3, results_10_3, results_12_3])
+results = pd.concat([results_8, results_10, results_12, results_8_2, results_10_2, results_12_2])
 
 # As a default, set the asymmetry level to 0 when the overlap is 0 (as the asymmetry doesn't play a role)
 results.loc[results.overlap == 0, "asymmetry"] = 0
@@ -27,13 +27,12 @@ results.loc[results.overlap == 0, "asymmetry"] = 0
 df8 = results_8.drop_duplicates(subset=["simulation_number"], keep='last')
 df10 = results_10.drop_duplicates(subset=["simulation_number"], keep='last')
 df12 = results_12.drop_duplicates(subset=["simulation_number"], keep='last')
-df8_10_12 = results_8_10_12.drop_duplicates(subset=["simulation_number"], keep='last')
-df8_3 = results_8_3.drop_duplicates(subset=["simulation_number"], keep='last')
-df10_3 = results_10_3.drop_duplicates(subset=["simulation_number"], keep='last')
-df12_3 = results_12_3.drop_duplicates(subset=["simulation_number"], keep='last')
+df8_2 = results_8_2.drop_duplicates(subset=["simulation_number"], keep='last')
+df10_2 = results_10_2.drop_duplicates(subset=["simulation_number"], keep='last')
+df12_2 = results_12_2.drop_duplicates(subset=["simulation_number"], keep='last')
 
 # Then add the last rows together to form a dataframe of the last 'state' of every conversation
-df = pd.concat([df8, df10, df12, df8_10_12, df8_3, df10_3, df12_3])
+df = pd.concat([df8, df10, df12, df8_2, df10_2, df12_2])
 
 # As a default, set the asymmetry level to 0 when the overlap is 0 (as the asymmetry doesn't play a role)
 df.loc[df.overlap == 0, "asymmetry"] = 0
@@ -181,6 +180,24 @@ repair_df["length"] = repair_df["repair request"].str.len()
 print("Mean repair request length: ", repair_df["length"].mean())
 
 # ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------- Distribution of utterance and repair request length ----------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+utterance_length = results
+utterance_length['utterance length'] = utterance_length['utterance speaker'].str.len()
+utterance_length['repair length'] = utterance_length['repair request'].str.len()
+# pd.melt(utterance_length, id_vars=['asymmetry', 'overlap'], value_vars=['utterance length', 'repair length'],
+#          ignore_index=False, var_name='length_type', value_name='utt length')
+# print(utterance_length[:20])
+
+# also repair solutions as utterance length in distribution: only select utterance length that are not a repair solution
+utterance_length.loc[utterance_length['repair request'].notnull(), 'utterance length'] = np.nan
+fig, ax = plt.subplots(1,2)
+sns.violinplot(x='asymmetry', y='utterance length', hue='overlap', ax=ax[0], data=utterance_length)
+sns.violinplot(x='asymmetry', y='repair length', hue='overlap', ax=ax[1], data=utterance_length)
+
+plt.show()
+
+# ----------------------------------------------------------------------------------------------------------------------
 # -------------------------------- Similarity speaker matches asymmetry in intention? ----------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -192,7 +209,8 @@ df['normalised asymmetry'] = df['normalised asymmetry'].astype(float)
 
 # sns.violinplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df)
 # sns.stripplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df, dodge=True)
-g = sns.catplot(x="asymmetry", y="normalised asymmetry", hue="overlap", col="n_nodes", kind="violin", data=df, legend_out=True)
+g = sns.catplot(x="asymmetry", y="normalised asymmetry", hue="overlap", col="n_nodes", kind="violin", data=df,
+                legend_out=True)
 # plt.title("Degree of \n overlap")
 # plt.ylabel("Normalised asymmetry intention")
 # plt.xlabel("Degree of asymmetry")
@@ -203,4 +221,3 @@ new_labels = ['0%', '50%', '100%']
 for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
 
 plt.show()
-
