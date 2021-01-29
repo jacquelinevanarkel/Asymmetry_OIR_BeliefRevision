@@ -291,10 +291,9 @@ def simulation(n_nodes, n_runs):
                     for index in range(n_nodes):
                         if belief_network_speaker.nodes[index]['type'] == 'inf':
                             possible_intention.append(index)
+                    print(possible_intention)
 
-                    n_nodes_intention = random.randint(int(0.25 * n_nodes), int(0.75 * n_nodes))
-                    while n_nodes_intention > len(possible_intention):
-                        n_nodes_intention = random.randint(int(0.25 * n_nodes), int(0.75 * n_nodes))
+                    n_nodes_intention = random.randint(int(0.25 * n_nodes), len(possible_intention))
                     intention = random.sample(possible_intention, k=n_nodes_intention)
 
                     # Collect arguments
@@ -353,8 +352,10 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     n_nodes = belief_network.number_of_nodes()
     if degree_overlap == 100:
         # Choose randomly for the speaker which nodes are own beliefs and inferred beliefs with a minimum of 1 own
-        # belief node
+        # belief node and a maximum of 75% of the nodes
         node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
+        while node_type_speaker.count("own") > (0.75 * n_nodes):
+            node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
         if "own" not in node_type_speaker:
             index = random.randrange(len(node_type_speaker))
             node_type_speaker[index] = "own"
