@@ -90,6 +90,23 @@ g.add_legend(title="Number of times repair initiated")
 
 plt.show()
 
+# Version 3: normalised asymmetry
+df['intention length'] = df['intention'].str.len()
+df['normalised asymmetry'] = df['asymmetry_intention']/df['intention length']
+df['normalised asymmetry'] = df['normalised asymmetry'].astype(float)
+
+intention_count_normalised = df.groupby(['n_repair'])['normalised asymmetry'].value_counts(normalize=True)\
+    .reset_index(name='Counts')
+
+sns.barplot(x="normalised asymmetry", y="Counts", hue="n_repair", data=intention_count_normalised)
+plt.title("Number of times the conversation is ended with a certain normalised asymmetry level of the intention for "
+          "different number of times repair is initiated")
+plt.ylabel("Mean count")
+plt.xlabel("Normalised asymmetry of intention")
+plt.legend(loc='upper right', title="Number of times \n repair is initiated")
+
+plt.show()
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------- The asymmetry over number of turns for different number of times repair is initiated ----------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -141,6 +158,27 @@ plt.show()
 #
 # plt.show()
 
+# Asymmetry of the entire network for different conversation states and different number of times that repair is
+# initiated in a conversation
+results['asymmetry_count'] = results['asymmetry_count'].astype(int)
+asymmetry_repair = results.groupby(["n_turns", "n_repair", "state", "conversation state", "n_nodes"], as_index=False)
+['asymmetry_count'].mean()
+# sns.lineplot(x="state", y="asymmetry_count", hue="n_repair", data=asymmetry_repair)
+#
+# plt.title("Mean asymmetry for different conversation states with and without repair initiated")
+# plt.ylabel("Asymmetry of network")
+# plt.xlabel("Conversation state")
+
+g = sns.catplot(x="state", y="asymmetry_count", hue="n_repair", col="n_nodes", kind="line", data=asymmetry_repair,
+                legend_out=True)
+g.set_xlabels('Conversation state')
+g.set_ylabels('Asymmetry of network')
+g._legend.set_title("Number of times repair initiated")
+new_labels = ['0', '1', '2']
+for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
+
+plt.show()
+
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------- The mean intention communicated for different amounts of nodes and edges in the network ---------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -160,7 +198,7 @@ nodes_8_max = 0.5**(0.25 * 8)
 nodes_10_max = 0.5**(0.25 * 10)
 nodes_12_max = 0.5**(0.25 * 12)
 
-sns.barplot(x="n_nodes", y="intention_communicated", hue="amount_edges", data=df)
+sns.barplot(x="n_nodes", y="intention_communicated", hue="amount_edges", data=df, ci="sd")
 plt.title("Mean intention communicated for different amounts of nodes and edges in the network")
 plt.ylabel("Mean intention communicated")
 plt.xlabel("Number of nodes")
