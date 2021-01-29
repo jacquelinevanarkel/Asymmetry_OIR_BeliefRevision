@@ -156,12 +156,17 @@ nodes_8 = 0.5**(0.75 * 8)
 nodes_10 = 0.5**(0.75 * 10)
 nodes_12 = 0.5**(0.75 * 12)
 
+nodes_8_max = 0.5**(0.25 * 8)
+nodes_10_max = 0.5**(0.25 * 10)
+nodes_12_max = 0.5**(0.25 * 12)
+
 sns.barplot(x="n_nodes", y="intention_communicated", hue="amount_edges", data=df)
 plt.title("Mean intention communicated for different amounts of nodes and edges in the network")
 plt.ylabel("Mean intention communicated")
 plt.xlabel("Number of nodes")
 plt.ylim(0, 1)
 plt.hlines(y=(nodes_8, nodes_10, nodes_12), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
+plt.hlines(y=(nodes_8_max, nodes_10_max, nodes_12_max), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
 
 plt.show()
 
