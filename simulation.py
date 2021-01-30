@@ -291,7 +291,7 @@ def simulation(n_nodes, n_runs):
                     for index in range(n_nodes):
                         if belief_network_speaker.nodes[index]['type'] == 'inf':
                             possible_intention.append(index)
-                    print(possible_intention)
+                    #print(possible_intention)
 
                     n_nodes_intention = random.randint(int(0.25 * n_nodes), len(possible_intention))
                     intention = random.sample(possible_intention, k=n_nodes_intention)

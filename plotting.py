@@ -9,16 +9,21 @@ import itertools
 # Read in data
 
 # Simulation run 1
-results_8 = pd.read_pickle("results_8.p")
-results_10 = pd.read_pickle("results_10.p")
-results_12 = pd.read_pickle("results_12.p")
+# results_8 = pd.read_pickle("results_8.p")
+# results_10 = pd.read_pickle("results_10.p")
+# results_12 = pd.read_pickle("results_12_1run.p")
 
-# Simulation run 2
-results_8_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_8.p")
-results_10_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_10.p")
-results_12_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_12.p")
+# # Simulation run 2
+# results_8_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_8.p")
+# results_10_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_10.p")
+# results_12_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_12.p")
 
-results = pd.concat([results_8, results_10, results_12, results_8_2, results_10_2, results_12_2])
+# Simulation final run
+results_8 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/results_8.p")
+results_10 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/results_10.p")
+results_12 = pd.read_pickle("results_12_1run.p")
+
+results = pd.concat([results_8, results_10, results_12])
 
 # As a default, set the asymmetry level to 0 when the overlap is 0 (as the asymmetry doesn't play a role)
 results.loc[results.overlap == 0, "asymmetry"] = 0
@@ -27,12 +32,12 @@ results.loc[results.overlap == 0, "asymmetry"] = 0
 df8 = results_8.drop_duplicates(subset=["simulation_number"], keep='last')
 df10 = results_10.drop_duplicates(subset=["simulation_number"], keep='last')
 df12 = results_12.drop_duplicates(subset=["simulation_number"], keep='last')
-df8_2 = results_8_2.drop_duplicates(subset=["simulation_number"], keep='last')
-df10_2 = results_10_2.drop_duplicates(subset=["simulation_number"], keep='last')
-df12_2 = results_12_2.drop_duplicates(subset=["simulation_number"], keep='last')
+# df8_2 = results_8_2.drop_duplicates(subset=["simulation_number"], keep='last')
+# df10_2 = results_10_2.drop_duplicates(subset=["simulation_number"], keep='last')
+# df12_2 = results_12_2.drop_duplicates(subset=["simulation_number"], keep='last')
 
 # Then add the last rows together to form a dataframe of the last 'state' of every conversation
-df = pd.concat([df8, df10, df12, df8_2, df10_2, df12_2])
+df = pd.concat([df8, df10, df12])
 
 # As a default, set the asymmetry level to 0 when the overlap is 0 (as the asymmetry doesn't play a role)
 df.loc[df.overlap == 0, "asymmetry"] = 0
@@ -98,7 +103,9 @@ df['normalised asymmetry'] = df['normalised asymmetry'].astype(float)
 intention_count_normalised = df.groupby(['n_repair'])['normalised asymmetry'].value_counts(normalize=True)\
     .reset_index(name='Counts')
 
-sns.barplot(x="normalised asymmetry", y="Counts", hue="n_repair", data=intention_count_normalised)
+intention_count_normalised['normalised asymmetry bins'] = pd.qcut(intention_count_normalised['normalised asymmetry'], q=10)
+
+sns.barplot(x="normalised asymmetry bins", y="Counts", hue="n_repair", data=intention_count_normalised)
 plt.title("Number of times the conversation is ended with a certain normalised asymmetry level of the intention for "
           "different number of times repair is initiated")
 plt.ylabel("Mean count")
@@ -161,21 +168,28 @@ plt.show()
 # Asymmetry of the entire network for different conversation states and different number of times that repair is
 # initiated in a conversation
 results['asymmetry_count'] = results['asymmetry_count'].astype(int)
-asymmetry_repair = results.groupby(["n_turns", "n_repair", "state", "conversation state", "n_nodes"], as_index=False)
-['asymmetry_count'].mean()
+#asymmetry_repair = results.groupby(["n_turns", "n_repair", "state", "conversation state", "n_nodes"], as_index=False)['asymmetry_count'].mean()
 # sns.lineplot(x="state", y="asymmetry_count", hue="n_repair", data=asymmetry_repair)
 #
 # plt.title("Mean asymmetry for different conversation states with and without repair initiated")
 # plt.ylabel("Asymmetry of network")
 # plt.xlabel("Conversation state")
 
-g = sns.catplot(x="state", y="asymmetry_count", hue="n_repair", col="n_nodes", kind="line", data=asymmetry_repair,
-                legend_out=True)
-g.set_xlabels('Conversation state')
-g.set_ylabels('Asymmetry of network')
-g._legend.set_title("Number of times repair initiated")
-new_labels = ['0', '1', '2']
-for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
+results_state = results[results["state"] != "listener initialisation"]
+results_state = results_state[results_state["state"] != "end conversation"]
+#g = sns.relplot(x="state", y="asymmetry_count", hue="n_repair", col="n_nodes", kind="line", data=results_state)
+g = sns.FacetGrid(col="n_nodes", data=results_state)
+g.map(sns.lineplot, "state", "asymmetry_count", "n_repair")
+
+# iterate over axes of FacetGrid
+for ax in g.axes.flat:
+    labels = ax.get_xticklabels() # get x labels
+    ax.set_xticklabels(labels, rotation=45, horizontalalignment='right') # set new labels
+# g.set_xlabels('Conversation state')
+# g.set_ylabels('Asymmetry of network')
+# g._legend.set_title("Number of times repair initiated")
+# new_labels = ['0', '1', '2']
+# for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
 
 plt.show()
 
