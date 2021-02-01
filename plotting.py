@@ -16,12 +16,12 @@ import itertools
 # # Simulation run 2
 # results_8_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_8.p")
 # results_10_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_10.p")
-# results_12_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_12.p")
+# results_12_2 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/run3/results_12_4run.p")
 
 # Simulation final run
 results_8 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/results_8.p")
 results_10 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/results_10.p")
-results_12 = pd.read_pickle("results_12_1run.p")
+results_12 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/results_12.p")
 
 results = pd.concat([results_8, results_10, results_12])
 
@@ -56,42 +56,44 @@ pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.ma
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Plot: degree of overlap & degree of asymmetry --> n_repair
-
-fig, ax = plt.subplots(1,2)
-
-# Create the plots and set labels and titles
-sns.barplot(x="overlap", y="n_repair", hue="asymmetry", data=df, ax=ax[0])
-ax[0].set_ylabel("Mean number of repair initiations")
-ax[0].set_xlabel("Degree of overlap")
-ax[0].set_ylim(0,1)
-
-# Plot: degree of overlap & degree of asymmetry --> intention communicated
-
-# Create the plots and set labels and titles
-sns.barplot(x="overlap", y="intention_communicated", hue="asymmetry", data=df, ax=ax[1])
-ax[1].set_ylabel("Mean number of times intention communicated")
-ax[1].set_xlabel("Degree of overlap")
-ax[1].set_ylim(0,1)
-
-plt.show()
+sns.set_style("whitegrid")
+# fig, ax = plt.subplots(1,2)
+#
+# # Create the plots and set labels and titles
+# sns.barplot(x="overlap", y="n_repair", hue="asymmetry", data=df, ax=ax[0])
+# ax[0].set_ylabel("Mean number of repair initiations")
+# ax[0].set_xlabel("Degree of overlap")
+# ax[0].set_ylim(0,1)
+#
+# # Plot: degree of overlap & degree of asymmetry --> intention communicated
+#
+# # Create the plots and set labels and titles
+# sns.barplot(x="overlap", y="intention_communicated", hue="asymmetry", data=df, ax=ax[1])
+# ax[1].set_ylabel("Mean number of times intention communicated")
+# ax[1].set_xlabel("Degree of overlap")
+# ax[1].set_ylim(0,1)
+#
+# plt.show()
 
 # Version 2: how often agents initiate repair (x-axis) for different success rates (asymmetry in intention)
 intention_count = df.groupby(['n_repair'])['asymmetry_intention'].value_counts(normalize=True)\
     .reset_index(name='Counts')
 sns.barplot(x="asymmetry_intention", y="Counts", hue="n_repair", data=intention_count)
-plt.title("Number of times the conversation is ended with a certain asymmetry level of the intention for different "
-          "number of times repair is initiated")
-plt.ylabel("Mean count")
+#plt.title("Number of times the conversation is ended with a certain asymmetry level of the intention for different "
+#          "number of times repair is initiated")
+plt.legend(loc='upper right', title="nRepair")
 plt.xlabel("Asymmetry of intention")
-plt.legend(loc='upper right', title="Number of times \n repair is initiated")
+plt.ylabel("Mean count")
 
+# Normalised asymmetry of intention
 df_asymmetry_intention = df.groupby(["n_repair", "overlap", "asymmetry"])["asymmetry_intention"].\
     value_counts(normalize=True).reset_index(name='Mean count')
 
 g = sns.FacetGrid(df_asymmetry_intention, col="asymmetry", row="overlap")
 g.map(sns.barplot, "asymmetry_intention", "Mean count", "n_repair", order=[0, 1, 2, 3, 4, 5, 6, 7, 8],
       hue_order=[0, 1, 2])
-g.add_legend(title="Number of times repair initiated")
+g.add_legend(title="nRepair")
+g.set_xlabels("Asymmetry of intention")
 
 plt.show()
 
@@ -106,14 +108,46 @@ intention_count_normalised = df.groupby(['n_repair'])['normalised asymmetry'].va
 intention_count_normalised['normalised asymmetry bins'] = pd.qcut(intention_count_normalised['normalised asymmetry'], q=10)
 
 sns.barplot(x="normalised asymmetry bins", y="Counts", hue="n_repair", data=intention_count_normalised)
-plt.title("Number of times the conversation is ended with a certain normalised asymmetry level of the intention for "
-          "different number of times repair is initiated")
+# plt.title("Number of times the conversation is ended with a certain normalised asymmetry level of the intention for "
+#           "different number of times repair is initiated")
 plt.ylabel("Mean count")
 plt.xlabel("Normalised asymmetry of intention")
-plt.legend(loc='upper right', title="Number of times \n repair is initiated")
+plt.legend(loc='upper right', title="nRepair")
 
 plt.show()
 
+# Normalised asymmetry of intention for different conditions heatmap
+repair0 = df[df["n_repair"] == 0]
+repair1 = df[df["n_repair"] == 1]
+repair2 = df[df["n_repair"] == 2]
+
+data1 = pd.pivot_table(repair0, values='normalised asymmetry', index=['overlap'], columns='asymmetry')
+data2 = pd.pivot_table(repair1, values='normalised asymmetry', index=['overlap'], columns='asymmetry')
+data3 = pd.pivot_table(repair2, values='normalised asymmetry', index=['overlap'], columns='asymmetry')
+
+fig, ax = plt.subplots(1,3)
+sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="YlGnBu", cbar=False, annot=True)
+sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="YlGnBu", cbar=False, annot=True)
+sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="YlGnBu", annot=True)
+
+ax[0].set_title("nRepair = 0")
+ax[1].set_title("nRepair = 1")
+ax[2].set_title("nRepair = 2")
+ax[0].set(ylabel="Degree of overlap", xlabel="")
+ax[1].set(ylabel="", xlabel="Degree of asymmetry")
+ax[2].set(ylabel="", xlabel="")
+ax[0].yaxis.get_label().set_fontsize(14)
+ax[1].xaxis.get_label().set_fontsize(14)
+
+plt.show()
+
+# Mean normalised asymmetry of intention
+df["n_repair"] = df["n_repair"].astype(str)
+sns.barplot(x="normalised asymmetry", y="n_repair", data=df, order=["0", "1", "2"])
+sns.stripplot(x="normalised asymmetry", y="n_repair", data=df, order=["0", "1", "2"], color="gray")
+plt.ylabel("nRepair", fontsize=14)
+plt.xlabel("Normalised asymmetry intention", fontsize=14)
+plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------- The asymmetry over number of turns for different number of times repair is initiated ----------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -185,8 +219,13 @@ g.map(sns.lineplot, "state", "asymmetry_count", "n_repair")
 for ax in g.axes.flat:
     labels = ax.get_xticklabels() # get x labels
     ax.set_xticklabels(labels, rotation=45, horizontalalignment='right') # set new labels
-# g.set_xlabels('Conversation state')
-# g.set_ylabels('Asymmetry of network')
+    ax.legend(title="nRepair")
+g.set_xlabels('Conversation state')
+g.set_ylabels('Asymmetry of network')
+axes = g.axes.flatten()
+axes[0].set_title("8 nodes")
+axes[1].set_title("10 nodes")
+axes[2].set_title("12 nodes")
 # g._legend.set_title("Number of times repair initiated")
 # new_labels = ['0', '1', '2']
 # for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
@@ -203,24 +242,24 @@ plt.show()
 # df_intention_true = df_intention[df_intention["intention_communicated"] == True]
 # print(df_intention_true)
 
-# Compute chance levels for every node type
-nodes_8 = 0.5**(0.75 * 8)
-nodes_10 = 0.5**(0.75 * 10)
-nodes_12 = 0.5**(0.75 * 12)
-
-nodes_8_max = 0.5**(0.25 * 8)
-nodes_10_max = 0.5**(0.25 * 10)
-nodes_12_max = 0.5**(0.25 * 12)
-
-sns.barplot(x="n_nodes", y="intention_communicated", hue="amount_edges", data=df, ci="sd")
-plt.title("Mean intention communicated for different amounts of nodes and edges in the network")
-plt.ylabel("Mean intention communicated")
-plt.xlabel("Number of nodes")
-plt.ylim(0, 1)
-plt.hlines(y=(nodes_8, nodes_10, nodes_12), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
-plt.hlines(y=(nodes_8_max, nodes_10_max, nodes_12_max), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
-
-plt.show()
+# # Compute chance levels for every node type
+# nodes_8 = 0.5**(0.75 * 8)
+# nodes_10 = 0.5**(0.75 * 10)
+# nodes_12 = 0.5**(0.75 * 12)
+#
+# nodes_8_max = 0.5**(0.25 * 8)
+# nodes_10_max = 0.5**(0.25 * 10)
+# nodes_12_max = 0.5**(0.25 * 12)
+#
+# sns.barplot(x="n_nodes", y="intention_communicated", hue="amount_edges", data=df, ci="sd")
+# #plt.title("Mean intention communicated for different amounts of nodes and edges in the network")
+# plt.ylabel("Mean intention communicated")
+# plt.xlabel("Number of nodes")
+# plt.ylim(0, 1)
+# plt.hlines(y=(nodes_8, nodes_10, nodes_12), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
+# plt.hlines(y=(nodes_8_max, nodes_10_max, nodes_12_max), xmin=(-0.4, 0.6, 1.6), xmax=(0.4, 1.4, 2.4), colors="black")
+#
+# plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------- Mean lengths of utterances spoken by speaker and listener ------------------------------
@@ -250,7 +289,13 @@ utterance_length['repair length'] = utterance_length['repair request'].str.len()
 utterance_length.loc[utterance_length['repair request'].notnull(), 'utterance length'] = np.nan
 fig, ax = plt.subplots(1,2)
 sns.violinplot(x='asymmetry', y='utterance length', hue='overlap', ax=ax[0], data=utterance_length)
+ax[0].set_ylabel("Utterance length")
+ax[0].set_xlabel("Degree of asymmetry")
+ax[0].legend(title="Degree of overlap")
 sns.violinplot(x='asymmetry', y='repair length', hue='overlap', ax=ax[1], data=utterance_length)
+ax[1].set_xlabel("Degree of asymmetry")
+ax[1].set_ylabel("Repair initiation length")
+ax[1].legend(title="Degree of overlap")
 
 plt.show()
 
@@ -264,8 +309,6 @@ df['intention length'] = df['intention'].str.len()
 df['normalised asymmetry'] = df['asymmetry_intention']/df['intention length']
 df['normalised asymmetry'] = df['normalised asymmetry'].astype(float)
 
-# sns.violinplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df)
-# sns.stripplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df, dodge=True)
 g = sns.catplot(x="asymmetry", y="normalised asymmetry", hue="overlap", col="n_nodes", kind="violin", data=df,
                 legend_out=True)
 # plt.title("Degree of \n overlap")
@@ -273,8 +316,54 @@ g = sns.catplot(x="asymmetry", y="normalised asymmetry", hue="overlap", col="n_n
 # plt.xlabel("Degree of asymmetry")
 g.set_xlabels('Degree of asymmetry')
 g.set_ylabels('Normalised asymmetry intention')
+axes = g.axes.flatten()
+axes[0].set_title("8 nodes")
+axes[1].set_title("10 nodes")
+axes[2].set_title("12 nodes")
 g._legend.set_title("Degree of \n overlap")
 new_labels = ['0%', '50%', '100%']
 for t, l in zip(g._legend.texts, new_labels): t.set_text(l)
+
+plt.show()
+
+# Version 2: nodes put together
+ax = sns.violinplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df)
+sns.stripplot(x="asymmetry", y="normalised asymmetry", hue="overlap", data=df, dodge=True)
+ax.legend_.remove()
+plt.ylabel("Normalised asymmetry intention")
+plt.xlabel("Degree of asymmetry")
+handles, labels = ax.get_legend_handles_labels()
+
+# When creating the legend, only use the first three elements to effectively remove the last two
+plt.legend(handles[0:3], labels[0:3], title="Degree of \n overlap")
+
+plt.show()
+
+# Perceived understanding vs actual understanding
+
+# Actual understanding normalised asymmetry = 0-0.25
+df["understanding"] = np.where(df["normalised asymmetry"] <= 0.25, True, False)
+understanding = df[df["understanding"] == "Understanding"]
+
+# Count data
+understanding_count = df.groupby(['n_repair', "asymmetry"])['understanding'].value_counts(normalize=True)\
+    .reset_index(name='Counts')
+total_count = df.groupby(["asymmetry"])['n_repair'].value_counts(normalize=True)\
+    .reset_index(name='Counts')
+
+# Initialize the matplotlib figure
+f, ax = plt.subplots(figsize=(6, 15))
+
+sns.set_color_codes("pastel")
+sns.barplot(x="Counts", y="n_repair", hue="asymmetry", data=total_count, color="b")
+
+sns.set_color_codes("muted")
+sns.barplot(x="Counts", y="n_repair", hue="asymmetry", data=understanding_count, color="b")
+
+# Add a legend and informative axis label
+ax.legend(ncol=2, loc="lower right", frameon=True)
+ax.set(ylabel="nRepair",
+       xlabel="Mean count")
+sns.despine(left=True, bottom=True)
 
 plt.show()
