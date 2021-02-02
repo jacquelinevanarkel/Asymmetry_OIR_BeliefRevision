@@ -50,13 +50,17 @@ print("n results 12 nodes: ", len(df[df['n_nodes'] == 12]))
 # If you want to view the data, here are some options to view the entire dataframe
 pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.max_colwidth', -1)
 
+# Seaborn settings used for plots
+sns.set_style("whitegrid")
+colors = ['#3182bd', '#9ecae1', '#deebf7']
+sns.set_palette(sns.color_palette(colors))
 # ----------------------------------------------------------------------------------------------------------------------
 # Subplots: degree of asymmetry and overlap on mean number of times repair initiated and mean number of times intention
 # communicated
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Plot: degree of overlap & degree of asymmetry --> n_repair
-sns.set_style("whitegrid")
+
 # fig, ax = plt.subplots(1,2)
 #
 # # Create the plots and set labels and titles
@@ -126,9 +130,9 @@ data2 = pd.pivot_table(repair1, values='normalised asymmetry', index=['overlap']
 data3 = pd.pivot_table(repair2, values='normalised asymmetry', index=['overlap'], columns='asymmetry')
 
 fig, ax = plt.subplots(1,3)
-sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="YlGnBu", cbar=False, annot=True)
-sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="YlGnBu", cbar=False, annot=True)
-sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="YlGnBu", annot=True)
+sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
+sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
+sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", annot=True)
 
 ax[0].set_title("nRepair = 0")
 ax[1].set_title("nRepair = 1")
@@ -212,7 +216,7 @@ results['asymmetry_count'] = results['asymmetry_count'].astype(int)
 results_state = results[results["state"] != "listener initialisation"]
 results_state = results_state[results_state["state"] != "end conversation"]
 #g = sns.relplot(x="state", y="asymmetry_count", hue="n_repair", col="n_nodes", kind="line", data=results_state)
-g = sns.FacetGrid(col="n_nodes", data=results_state)
+g = sns.FacetGrid(col="n_nodes", data=results_state, palette=sns.color_palette(colors))
 g.map(sns.lineplot, "state", "asymmetry_count", "n_repair")
 
 # iterate over axes of FacetGrid
@@ -232,6 +236,45 @@ axes[2].set_title("12 nodes")
 
 plt.show()
 
+# Version 2: split on interaction number
+conditions = [(results_state['conversation state'] == 0) & (results_state['state'] == "initialisation"),
+              (results_state['conversation state'] == 0) & (results_state['state'] == "listener update utterance"),
+              (results_state['conversation state'] == 0) & (results_state['state'] == "speaker update network repair"),
+              (results_state['conversation state'] == 0) & (results_state['state'] == "listener update solution"),
+
+              (results_state['conversation state'] == 1) & (results_state['state'] == "initialisation"),
+              (results_state['conversation state'] == 1) & (results_state['state'] == "listener update utterance"),
+              (results_state['conversation state'] == 1) & (results_state['state'] == "speaker update network repair"),
+              (results_state['conversation state'] == 1) & (results_state['state'] == "listener update solution"),
+
+              (results_state['conversation state'] == 2) & (results_state['state'] == "initialisation"),
+              (results_state['conversation state'] == 2) & (results_state['state'] == "listener update utterance"),
+              (results_state['conversation state'] == 2) & (results_state['state'] == "speaker update network repair"),
+              (results_state['conversation state'] == 2) & (results_state['state'] == "listener update solution"),
+]
+
+values = ['initialisation', 'listener update utterance', 'speaker update repair',
+          'listener update solution', 'initialisation 2', 'listener update utterance 2',
+          'speaker update repair 2', 'listener update solution 2', 'initialisation 3',
+          'listener update utterance 3', 'speaker update repair 3', 'listener update solution 3']
+results_state['state conversation'] = np.select(conditions, values)
+
+g = sns.FacetGrid(col="n_nodes", data=results_state, palette=sns.color_palette(colors))
+g.map(sns.lineplot, "state conversation", "asymmetry_count", "n_repair")
+
+# iterate over axes of FacetGrid
+for ax in g.axes.flat:
+    labels = ax.get_xticklabels() # get x labels
+    ax.set_xticklabels(labels, rotation=45, horizontalalignment='right') # set new labels
+    ax.legend(title="nRepair")
+g.set_xlabels('Conversation state')
+g.set_ylabels('Asymmetry of network')
+axes = g.axes.flatten()
+axes[0].set_title("8 nodes")
+axes[1].set_title("10 nodes")
+axes[2].set_title("12 nodes")
+
+plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
 # -------------- The mean intention communicated for different amounts of nodes and edges in the network ---------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -342,28 +385,110 @@ plt.show()
 # Perceived understanding vs actual understanding
 
 # Actual understanding normalised asymmetry = 0-0.25
-df["understanding"] = np.where(df["normalised asymmetry"] <= 0.25, True, False)
+df["understanding"] = np.where(df["normalised asymmetry"] <= 0.25, 1, 0)
 understanding = df[df["understanding"] == "Understanding"]
 
 # Count data
-understanding_count = df.groupby(['n_repair', "asymmetry"])['understanding'].value_counts(normalize=True)\
-    .reset_index(name='Counts')
-total_count = df.groupby(["asymmetry"])['n_repair'].value_counts(normalize=True)\
-    .reset_index(name='Counts')
+understanding_count = df.groupby(['n_repair', 'asymmetry', 'overlap'])['understanding'].mean().reset_index(name='understanding')
+understanding_count["total"] = 1
 
 # Initialize the matplotlib figure
 f, ax = plt.subplots(figsize=(6, 15))
 
-sns.set_color_codes("pastel")
-sns.barplot(x="Counts", y="n_repair", hue="asymmetry", data=total_count, color="b")
+colors=['#b35806','#f1a340','#fee0b6','#d8daeb','#998ec3','#542788']
 
-sns.set_color_codes("muted")
-sns.barplot(x="Counts", y="n_repair", hue="asymmetry", data=understanding_count, color="b")
+sns.set_palette(sns.color_palette(colors[:3]))
+sns.barplot(x="total", y="n_repair", hue="asymmetry", data=understanding_count, ci=None)
+
+sns.set_palette(sns.color_palette(colors[3:]))
+sns.barplot(x="understanding", y="n_repair", hue="asymmetry", data=understanding_count, ci=None)
 
 # Add a legend and informative axis label
-ax.legend(ncol=2, loc="lower right", frameon=True)
+ax.legend(ncol=2, loc="lower right", frameon=True, title="Perceived understanding vs. Factual understanding \n "
+                                                         "Degree of asymmetry")
 ax.set(ylabel="nRepair",
        xlabel="Mean count")
 sns.despine(left=True, bottom=True)
+
+plt.show()
+
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- Do beliefs stay coherent? ----------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+# n_repair, conversation state, degree of overlap/asymmetry?
+results_state['coherence listener'] = results_state['coherence listener'].astype(int)
+
+g = sns.FacetGrid(col="asymmetry", data=results_state, palette=sns.color_palette(colors))
+g.map(sns.lineplot, "state conversation", "coherence listener", "n_repair")
+
+# iterate over axes of FacetGrid
+for ax in g.axes.flat:
+    labels = ax.get_xticklabels() # get x labels
+    ax.set_xticklabels(labels, rotation=45, horizontalalignment='right')
+    ax.legend(title="nRepair")
+g.set_xlabels('Conversation state')
+g.set_ylabels('Coherence listener network')
+axes = g.axes.flatten()
+axes[0].set_title("0% asymmetry")
+axes[1].set_title("50% asymmetry")
+axes[2].set_title("100% asymmetry")
+
+plt.show()
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------- Do inferred beliefs change a lot? ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# i = 0
+# for nodes in results_state['nodes listener']:
+#     results_state.loc[i, 'inf nodes'] = [(x, y['truth_value']) for x, y in nodes if y['type'] == 'inf']
+#     i +=1
+#
+# print(results_state['inf nodes'][:5])
+#
+# g = sns.FacetGrid(col="asymmetry", data=results_state, palette=sns.color_palette(colors))
+# g.map(sns.lineplot, "state conversation", "coherence listener", "n_repair")
+#
+# # iterate over axes of FacetGrid
+# for ax in g.axes.flat:
+#     labels = ax.get_xticklabels() # get x labels
+#     ax.set_xticklabels(labels, rotation=45, horizontalalignment='right')
+#     ax.legend(title="nRepair")
+# g.set_xlabels('Conversation state')
+# g.set_ylabels('Coherence listener network')
+# axes = g.axes.flatten()
+# axes[0].set_title("0% asymmetry")
+# axes[1].set_title("50% asymmetry")
+# axes[2].set_title("100% asymmetry")
+#
+# plt.show()
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------------------ How do the asymmetry of intention and network compare? --------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+results_state_0 = results_state[results_state['state conversation'] == "initialisation"]
+
+results_state_0_new = pd.melt(results_state_0, id_vars=['n_nodes'], value_vars=['asymmetry_count',
+                                                                                'asymmetry_intention'],
+                              ignore_index=False, var_name='asymmetry_compare', value_name='count_asymmetry')
+
+# Normalised asymmetry of intention vs normalised asymmetry of network
+sns.barplot(x='asymmetry_compare', y='count_asymmetry', hue="n_nodes", data=results_state_0_new)
+plt.show()
+
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- How often repair initiated? --------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+# For different overlap and asymmetry levels
+repair_counts = df.groupby(['asymmetry', 'overlap'])['n_repair'].value_counts(normalize=True).reset_index(name='Counts')
+print(repair_counts)
+
+g = sns.FacetGrid(repair_counts, col="asymmetry")
+g.map(sns.barplot, "n_repair", "Counts", "overlap")
+g.add_legend(title="Degree of overlap")
+g.set_xlabels("nRepair")
+g.set_ylabels("Mean counts")
+g.set(ylim=(0, 1))
 
 plt.show()
