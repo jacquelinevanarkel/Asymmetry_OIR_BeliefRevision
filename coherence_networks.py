@@ -34,11 +34,11 @@ class CoherenceNetworks:
 
         # The maximum number of edges is the number of nodes^2, forming an upper bound.
         if self.a_edges == "low":
-            n_edges = round(random.uniform(((self.n_nodes - 1)/(self.n_nodes**2)), 0.333) * (self.n_nodes**2))
+            n_edges = round(random.uniform(((self.n_nodes - 1)/(self.n_nodes**2)), 0.333) * ((self.n_nodes*(self.n_nodes - 1))/2))
         elif self.a_edges == "middle":
-            n_edges = round(random.uniform(0.34, 0.666) * (self.n_nodes**2))
+            n_edges = round(random.uniform(0.34, 0.666) * (self.n_nodes*(self.n_nodes - 1))/2)
         elif self.a_edges == "high":
-            n_edges = round(random.uniform(0.67, 1.0) * (self.n_nodes**2))
+            n_edges = round(random.uniform(0.67, 1.0) * (self.n_nodes*(self.n_nodes - 1))/2)
         else:
             raise ValueError("Amount of edges must be either 'low', 'middle' or 'high'")
 
@@ -97,4 +97,4 @@ class CoherenceNetworks:
 
 
 if __name__ == '__main__':
-    CoherenceNetworks(5, 'middle', 'high').create_graph()
+    CoherenceNetworks(8, 'middle', 'high').create_graph()

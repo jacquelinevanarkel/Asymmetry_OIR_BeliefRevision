@@ -26,6 +26,8 @@ class SpeakerModel:
 
         # First of all, the speaker makes inferences about the nodes that are not its own beliefs or the communicative
         # intention (T'_inf)
+        # TODO: only do this once, as a matter of inference (otherwise the speaker network might still change sometimes
+        #  based on chance)
         self.belief_network = self.belief_revision(self.belief_network)
 
         # Get the not (yet) communicated nodes and its combinations of different sizes of (sub)sets

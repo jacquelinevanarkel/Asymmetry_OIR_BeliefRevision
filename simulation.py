@@ -296,6 +296,7 @@ def simulation(n_nodes, n_runs):
                     n_nodes_intention = random.randint(int(0.25 * n_nodes), len(possible_intention))
                     intention = random.sample(possible_intention, k=n_nodes_intention)
 
+
                     # Collect arguments
                     list_speaker_network.append(belief_network_speaker)
                     list_listener_network.append(belief_network_listener)
