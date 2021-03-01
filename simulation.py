@@ -36,7 +36,8 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
     repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy()).belief_revision()
 
     # Initialise the speaker belief network
-    belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention).belief_revision()
+    belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention).\
+        belief_revision(belief_network_speaker.copy())
 
     # Initialise a count for the number of turns taken in a conversation
     t = 0

@@ -70,14 +70,20 @@ class SpeakerModel:
 
         return utterance, self.belief_network, similarities[optimisation_index]
 
-    def belief_revision(self):
+    def belief_revision(self, network, communicated_nodes=None):
         """
         Make inferences based on own and communicated beliefs (same function as for listener).
         :return: list; the truth values of a set of inferred nodes
         """
 
+        # Add communicated nodes if necessary
+        if communicated_nodes is not None:
+            for node in communicated_nodes:
+                network.nodes[node]['truth_value'] = self.belief_network.nodes[node]['truth_value']
+                network.nodes[node]['type'] = 'com'
+
         # Get the inferred nodes and its combinations of truth values in order to explore different coherence values
-        inferred_nodes = [x for x, y in self.belief_network.nodes(data=True) if y['type'] == 'inf']
+        inferred_nodes = [x for x, y in network.nodes(data=True) if y['type'] == 'inf']
         combinations = list(itertools.product([True, False], repeat=len(inferred_nodes)))
 
         # Calculate the coherence for all possible combinations
@@ -89,9 +95,9 @@ class SpeakerModel:
             # Initialise a count for the number of inferred nodes
             i = 0
             for inferred_node in inferred_nodes:
-                self.belief_network.nodes[inferred_node]['truth_value'] = combinations[n][i]
+                network.nodes[inferred_node]['truth_value'] = combinations[n][i]
                 i += 1
-            coherence_values.append(self.coherence(self.belief_network))
+            coherence_values.append(self.coherence(network))
 
         # Store all the indices of the maximum coherence values in a list and pick one randomly
         max_coherence = max(coherence_values)
@@ -101,10 +107,10 @@ class SpeakerModel:
         # Set the truth values of the inferred nodes to (one of) the maximum coherence option(s)
         i = 0
         for inferred_node in inferred_nodes:
-            self.belief_network.nodes[inferred_node]['truth_value'] = combinations[nodes_truth_values_index][i]
+            network.nodes[inferred_node]['truth_value'] = combinations[nodes_truth_values_index][i]
             i += 1
 
-        return self.belief_network
+        return network
 
     def repair_solution(self):
         """
