@@ -24,12 +24,6 @@ class SpeakerModel:
         :return: list; the truth values of a (set of) node(s) to be communicated (the other nodes will be set to 'None')
         """
 
-        # First of all, the speaker makes inferences about the nodes that are not its own beliefs or the communicative
-        # intention (T'_inf)
-        # TODO: only do this once, as a matter of inference (otherwise the speaker network might still change sometimes
-        #  based on chance)
-        self.belief_network = self.belief_revision(self.belief_network)
-
         # Get the not (yet) communicated nodes and its combinations of different sizes of (sub)sets
         not_comm_nodes = [x for x, y in self.belief_network.nodes(data=True) if y['type'] == 'inf' or
                           y['type'] == 'own']
@@ -76,20 +70,14 @@ class SpeakerModel:
 
         return utterance, self.belief_network, similarities[optimisation_index]
 
-    def belief_revision(self, network, communicated_nodes=None):
+    def belief_revision(self):
         """
         Make inferences based on own and communicated beliefs (same function as for listener).
         :return: list; the truth values of a set of inferred nodes
         """
 
-        # Add communicated nodes if necessary
-        if communicated_nodes is not None:
-            for node in communicated_nodes:
-                network.nodes[node]['truth_value'] = self.belief_network.nodes[node]['truth_value']
-                network.nodes[node]['type'] = 'com'
-
         # Get the inferred nodes and its combinations of truth values in order to explore different coherence values
-        inferred_nodes = [x for x, y in network.nodes(data=True) if y['type'] == 'inf']
+        inferred_nodes = [x for x, y in self.belief_network.nodes(data=True) if y['type'] == 'inf']
         combinations = list(itertools.product([True, False], repeat=len(inferred_nodes)))
 
         # Calculate the coherence for all possible combinations
@@ -101,9 +89,9 @@ class SpeakerModel:
             # Initialise a count for the number of inferred nodes
             i = 0
             for inferred_node in inferred_nodes:
-                network.nodes[inferred_node]['truth_value'] = combinations[n][i]
+                self.belief_network.nodes[inferred_node]['truth_value'] = combinations[n][i]
                 i += 1
-            coherence_values.append(self.coherence(network))
+            coherence_values.append(self.coherence(self.belief_network))
 
         # Store all the indices of the maximum coherence values in a list and pick one randomly
         max_coherence = max(coherence_values)
@@ -113,10 +101,10 @@ class SpeakerModel:
         # Set the truth values of the inferred nodes to (one of) the maximum coherence option(s)
         i = 0
         for inferred_node in inferred_nodes:
-            network.nodes[inferred_node]['truth_value'] = combinations[nodes_truth_values_index][i]
+            self.belief_network.nodes[inferred_node]['truth_value'] = combinations[nodes_truth_values_index][i]
             i += 1
 
-        return network
+        return self.belief_network
 
     def repair_solution(self):
         """
@@ -147,7 +135,7 @@ class SpeakerModel:
             repair_solution = self.repair_request
             similarity = False
 
-        return repair_solution, similarity
+        return repair_solution, similarity, self.belief_network
 
     def coherence(self, network):
         """

@@ -35,6 +35,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
     # Listener changes beliefs accordingly
     repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy()).belief_revision()
 
+    # Initialise the speaker belief network
+    belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention).belief_revision()
+
     # Initialise a count for the number of turns taken in a conversation
     t = 0
 
@@ -101,8 +104,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
         # If the listener initiates repair the speaker gives a repair solution
         if repair_request:
             r += 1
-            repair_solution, similarity = SpeakerModel(belief_network_speaker.copy(), intention,
-                                                       repair_request=repair_request).repair_solution()
+            repair_solution, similarity, belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention,
+                                                                               repair_request=repair_request)\
+                .repair_solution()
             t += 1
             # print("Repair solution: ", repair_solution)
 

@@ -32,7 +32,7 @@ class CoherenceNetworks:
         :return: int; number of edges
         """
 
-        # The maximum number of edges is the number of nodes^2, forming an upper bound.
+        # The maximum number of edges is (the number of nodes*(number of nodes -1))/2, forming an upper bound.
         if self.a_edges == "low":
             n_edges = round(random.uniform(((self.n_nodes - 1)/(self.n_nodes**2)), 0.333) * ((self.n_nodes*(self.n_nodes - 1))/2))
         elif self.a_edges == "middle":
