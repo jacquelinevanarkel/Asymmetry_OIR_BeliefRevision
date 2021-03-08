@@ -85,8 +85,7 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
         # Listener changes beliefs accordingly and initiates repair if necessary
         repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
                                                                 communicated_nodes=utterance).belief_revision()
-        if repair_request:
-            t += 1
+
         # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
         # print("Repair request: ", repair_request)
 
@@ -103,8 +102,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                                      intention=intention), "listener update utterance"]
 
         # If the listener initiates repair the speaker gives a repair solution
-        if repair_request:
+        while repair_request:
             r += 1
+            t += 1
             repair_solution, similarity, belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention,
                                                                                repair_request=repair_request)\
                 .repair_solution()
