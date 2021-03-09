@@ -102,7 +102,9 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                                                      intention=intention), "listener update utterance"]
 
         # If the listener initiates repair the speaker gives a repair solution
+        clarification = -1
         while repair_request:
+            clarification += 1
             r += 1
             t += 1
             repair_solution, similarity, belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention,
@@ -116,37 +118,71 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
                 confirmation = True
 
             # Store results
-            results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                         belief_network_listener.nodes(data=True),
-                                         belief_network_speaker.edges(data=True),
-                                         belief_network_listener.edges(data=True), None, None,
-                                         coherence(belief_network_speaker),
-                                         coherence(belief_network_listener),
-                                         None, confirmation, i, similarity, repair_solution,
-                                         repair_request, False, intention,
-                                         asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                         asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                         intention=intention), "speaker update network repair"]
 
-            # The listener performs belief revision according to the repair solution from the speaker
-            repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
-                                                                    communicated_nodes=repair_solution) \
-                .belief_revision()
-            # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
-            # print("Repair request after repair solution: ", repair_request)
+            if clarification == 0:
+                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                             belief_network_listener.nodes(data=True),
+                                             belief_network_speaker.edges(data=True),
+                                             belief_network_listener.edges(data=True), None, None,
+                                             coherence(belief_network_speaker),
+                                             coherence(belief_network_listener),
+                                             None, confirmation, i, similarity, repair_solution,
+                                             repair_request, False, intention,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                             intention=intention), "speaker update network repair"]
 
-            # Store results
-            results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                         belief_network_listener.nodes(data=True),
-                                         belief_network_speaker.edges(data=True),
-                                         belief_network_listener.edges(data=True), None, None,
-                                         coherence(belief_network_speaker),
-                                         coherence(belief_network_listener),
-                                         None, None, i, None, None,
-                                         repair_request, False, intention,
-                                         asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                         asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                         intention=intention), "listener update solution"]
+                # The listener performs belief revision according to the repair solution from the speaker
+                repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
+                                                                        communicated_nodes=repair_solution) \
+                    .belief_revision()
+                # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+                # print("Repair request after repair solution: ", repair_request)
+
+                # Store results
+                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                             belief_network_listener.nodes(data=True),
+                                             belief_network_speaker.edges(data=True),
+                                             belief_network_listener.edges(data=True), None, None,
+                                             coherence(belief_network_speaker),
+                                             coherence(belief_network_listener),
+                                             None, None, i, None, None,
+                                             repair_request, False, intention,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                             intention=intention), "listener update solution"]
+            else:
+                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                             belief_network_listener.nodes(data=True),
+                                             belief_network_speaker.edges(data=True),
+                                             belief_network_listener.edges(data=True), None, None,
+                                             coherence(belief_network_speaker),
+                                             coherence(belief_network_listener),
+                                             None, confirmation, i, similarity, repair_solution,
+                                             repair_request, False, intention,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                             intention=intention), "speaker update network repair_" + str(clarification)]
+
+                # The listener performs belief revision according to the repair solution from the speaker
+                repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
+                                                                        communicated_nodes=repair_solution) \
+                    .belief_revision()
+                # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+                # print("Repair request after repair solution: ", repair_request)
+
+                # Store results
+                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
+                                             belief_network_listener.nodes(data=True),
+                                             belief_network_speaker.edges(data=True),
+                                             belief_network_listener.edges(data=True), None, None,
+                                             coherence(belief_network_speaker),
+                                             coherence(belief_network_listener),
+                                             None, None, i, None, None,
+                                             repair_request, False, intention,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
+                                             asymmetry_count(belief_network_speaker, belief_network_listener,
+                                                             intention=intention), "listener update solution_" + str(clarification)]
 
         # If the listener does not initiate repair and the similarity is maximised the conversation is ended
         max_sim_end = False
