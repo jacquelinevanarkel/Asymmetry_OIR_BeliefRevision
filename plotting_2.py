@@ -99,17 +99,26 @@ plt.show()
 df_compare["non_perceived"] = np.where((df_compare["normalised_asymmetry_intention_start"] != 0) & (df_compare["n_repair"] == 0), True, False)
 counts = df_compare.groupby(['normalised_asymmetry_intention_start'])['non_perceived'].value_counts().reset_index(name='Counts')
 grouped_df = counts.groupby(['normalised_asymmetry_intention_start', 'non_perceived']).agg({'Counts': 'sum'})
-print(grouped_df)
 percents_df = grouped_df.groupby(level=0).apply(lambda x: 100 * x / float(x.sum()))
 percents_df.reset_index(inplace=True)
-print(percents_df)
+percents_df["total"] = 100
+percents_df_perceived = percents_df[percents_df["non_perceived"] == False]
 
-g = sns.barplot(x="normalised_asymmetry_intention_start", y="Counts", hue="non_perceived", data=percents_df)
+sns.barplot(x="normalised_asymmetry_intention_start", y="total", data=percents_df, ci=None, color='#bdd7e7')
 
-h, l = g.get_legend_handles_labels()
-g.legend(h, ["perceived", "not perceived"])
-#plt.legend(labels=["perceived", "not perceived"])
+g = sns.barplot(x="normalised_asymmetry_intention_start", y="Counts", data=percents_df_perceived, ci=None, color='#6baed6')
+
+plt.legend(["not perceived", "perceived"])
+g.axhline(y=50, color='black', linestyle='dashed')
 plt.ylabel("Percentage")
 plt.xlabel("Normalised asymmetry of intention at start")
+
+# g = sns.barplot(x="normalised_asymmetry_intention_start", y="Counts", hue="non_perceived", data=percents_df)
+#
+# h, l = g.get_legend_handles_labels()
+# g.legend(h, ["perceived", "not perceived"])
+# #plt.legend(labels=["perceived", "not perceived"])
+# plt.ylabel("Percentage")
+# plt.xlabel("Normalised asymmetry of intention at start")
 
 plt.show()
