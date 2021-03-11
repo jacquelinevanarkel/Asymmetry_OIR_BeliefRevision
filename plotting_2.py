@@ -96,17 +96,15 @@ plt.show()
 
 #df_start_asym = df_start[["normalised_asymmetry_intention", "simulation_number_new"]]
 #df_compare2 = df.join(df_start_asym.set_index('simulation_number_new'), on="simulation_number_new", rsuffix="_start")
-df_compare["non_perceived"] = np.where((df_compare["normalised_asymmetry_intention"] != 0) & (df_compare["n_repair"] == 0), True, False)
-counts = df_compare.groupby(['normalised_asymmetry_intention'])['non_perceived'].value_counts().reset_index(name='Counts')
-grouped_df = counts.groupby(['normalised_asymmetry_intention', 'non_perceived']).agg({'Counts': 'sum'})
+df_compare["non_perceived"] = np.where((df_compare["normalised_asymmetry_intention_start"] != 0) & (df_compare["n_repair"] == 0), True, False)
+counts = df_compare.groupby(['normalised_asymmetry_intention_start'])['non_perceived'].value_counts().reset_index(name='Counts')
+grouped_df = counts.groupby(['normalised_asymmetry_intention_start', 'non_perceived']).agg({'Counts': 'sum'})
 print(grouped_df)
 percents_df = grouped_df.groupby(level=0).apply(lambda x: 100 * x / float(x.sum()))
 percents_df.reset_index(inplace=True)
 print(percents_df)
 
-# Count how often + hue = asymmetry intention at start?
-#sns.countplot(x="normalised_asymmetry_intention", hue="non_perceived", data=df_compare2)
-g = sns.barplot(x="normalised_asymmetry_intention", y="Counts", hue="non_perceived", data=percents_df)
+g = sns.barplot(x="normalised_asymmetry_intention_start", y="Counts", hue="non_perceived", data=percents_df)
 
 h, l = g.get_legend_handles_labels()
 g.legend(h, ["perceived", "not perceived"])
@@ -115,4 +113,3 @@ plt.ylabel("Percentage")
 plt.xlabel("Normalised asymmetry of intention at start")
 
 plt.show()
-
