@@ -293,7 +293,7 @@ def simulation(n_nodes, n_runs):
         columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
                  "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
                  "conversation state", "similarity", "utterance speaker", "repair request",
-                 "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention"])
+                 "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention", "state"])
 
     # Initialise empty list to store the different arguments in
     list_speaker_network = []

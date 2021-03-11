@@ -584,3 +584,16 @@ g.set_ylabels("Mean counts")
 g.set(ylim=(0, 1))
 
 plt.show()
+
+# ----------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------- Asymmetry network at start vs end? -------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# For different times repair is initiated
+df8_start = results_8.drop_duplicates(subset=["simulation_number"], keep='first')
+df10_start = results_10.drop_duplicates(subset=["simulation_number"], keep='first')
+df12_start = results_12.drop_duplicates(subset=["simulation_number"], keep='first')
+df_start = pd.concat([df8_start, df10_start, df12_start])
+df_start_asym = df_start["asymmetry_count"]
+df_compare = df.join(df_start_asym)
+
+#sns.barplot(x="asymmetry_count", y="asymmetry_count", data=df_compare)
