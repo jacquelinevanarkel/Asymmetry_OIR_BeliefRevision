@@ -306,6 +306,7 @@ results_state['state conversation'] = np.select(conditions, values)
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'producer update repair'].index)
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'producer update repair 2'].index)
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'producer update repair 3'].index)
+results_state = results_state.drop(results_state[results_state['state conversation'] == 'initialisation 3'].index)
 
 # Add all clarification repair together to one repair sequence
 
@@ -336,14 +337,82 @@ plt.show()
 # Plot for all the nodes together
 colors = ['#bdd7e7', '#6baed6', '#3182bd', '#08519c']
 sns.set(font_scale=1.5)
-g = sns.lineplot(x="state conversation", y="normalised_asymmetry_network", hue="n_repair", palette=colors, data=results_state, estimator=None)
-plt.xlabel("Conversation state")
-plt.ylabel("Mean normalised asymmetry of network")
-plt.xticks(
-    rotation=15,
-    horizontalalignment='right',
-    fontweight='light'
-)
+#g = sns.pointplot(x="state conversation", y="normalised_asymmetry_network", hue="n_repair", palette=colors, data=results_state)
+
+
+results_state_0 = results_state[results_state["n_repair"] == 0]
+results_state_1 = results_state[results_state["n_repair"] == 1]
+results_state_2 = results_state[results_state["n_repair"] == 2]
+results_state_3 = results_state[results_state["n_repair"] == 3]
+
+plt.figure()
+
+plt.subplot(141)
+plt.plot("state conversation", "normalised_asymmetry_network", color='#bdd7e7', data=results_state_0)
+
+ax = plt.gca()
+ax.axes.get_xaxis().set_visible(False)
+
+plt.title("(a) nRepair = 0")
+#plt.xlabel("Course of a conversation")
+plt.ylabel("Normalised asymmetry of network")
+# plt.xticks(
+#     rotation=15,
+#     horizontalalignment='right',
+#     fontweight='light'
+# )
+
+#plt.show()
+
+plt.subplot(142)
+plt.plot("state conversation", "normalised_asymmetry_network", color='#6baed6', data=results_state_1)
+
+ax = plt.gca()
+ax.axes.get_xaxis().set_visible(False)
+
+plt.title("(b) nRepair = 1")
+#plt.xlabel("Course of a conversation")
+plt.ylabel("")
+# plt.xticks(
+#     rotation=15,
+#     horizontalalignment='right',
+#     fontweight='light'
+# )
+
+#plt.show()
+
+plt.subplot(143)
+plt.plot("state conversation", "normalised_asymmetry_network", color='#3182bd', data=results_state_2)
+
+ax = plt.gca()
+ax.axes.get_xaxis().set_visible(False)
+
+plt.title("(c) nRepair = 2")
+#plt.xlabel("Course of a conversation")
+plt.ylabel("")
+# plt.xticks(
+#     rotation=15,
+#     horizontalalignment='right',
+#     fontweight='light'
+# )
+
+#plt.show()
+
+plt.subplot(144)
+plt.plot("state conversation", "normalised_asymmetry_network", color='#08519c', data=results_state_3)
+
+ax = plt.gca()
+ax.axes.get_xaxis().set_visible(False)
+
+plt.title("(d) nRepair = 3")
+#plt.xlabel("Course of a conversation")
+plt.ylabel("")
+plt.ylim(top=1)
+# plt.xticks(
+#     rotation=15,
+#     horizontalalignment='right',
+#     fontweight='light'
+# )
 
 plt.show()
 
