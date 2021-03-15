@@ -336,7 +336,7 @@ plt.show()
 # Plot for all the nodes together
 colors = ['#bdd7e7', '#6baed6', '#3182bd', '#08519c']
 sns.set(font_scale=1.5)
-g = sns.lineplot(x="state conversation", y="normalised_asymmetry_network", hue="n_repair", palette=colors, data=results_state)
+g = sns.lineplot(x="state conversation", y="normalised_asymmetry_network", hue="n_repair", palette=colors, data=results_state, estimator=None)
 plt.xlabel("Conversation state")
 plt.ylabel("Mean normalised asymmetry of network")
 plt.xticks(
