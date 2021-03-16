@@ -155,7 +155,7 @@ results_10["simulation_number"] = results_10["simulation_number"] + 3600
 results_12["simulation_number"] = results_12["simulation_number"] + 7200
 
 results_new = pd.concat([results_8, results_10, results_12])
-results_new["repair_length"] = results_new["repair request"].str.len()
+results_new["repair_length"] = results_new["repair request"].str.len()/results_new["n_nodes"]
 results_new["start_asym"] = np.where(results_new["conversation state"] == "Start", results_new["asymmetry_intention"], np.nan)
 
 repair_length = results_new.groupby(['simulation_number', 'n_repair'])['repair_length'].mean().reset_index(name='Mean')
@@ -164,8 +164,12 @@ new = pd.merge(df_start, repair_length, on="simulation_number")
 new2 = new[new['n_repair_y'] > 0]
 
 
-ax = sns.factorplot(x="normalised_asymmetry_intention_start", y="Mean", hue="n_repair_y", data=new2)
-sns.stripplot(x="normalised_asymmetry_intention_start", y="Mean", hue="n_repair_y", data=new2, jitter=True, dodge=True, palette=sns.color_palette(colors[4:]))
+ax = sns.factorplot(x="normalised_asymmetry_intention_start", y="Mean", hue="n_repair_y", data=new2, colors=colors[1:4])
+sns.stripplot(x="normalised_asymmetry_intention_start", y="Mean", hue="n_repair_y", data=new2, jitter=True, dodge=True, palette=sns.color_palette(colors[5:]))
+
+plt.ylabel("Mean normalised length of the repair initiations")
+plt.xlabel("Normalised asymmetry of intention at start")
+ax.set(ylim=(0, 1))
 
 plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
@@ -183,5 +187,8 @@ x,y = 'normalised_asymmetry_intention_start', 'n_repair'
 .reset_index()
 .pipe((sns.catplot,'data'), x=x,y='percent',hue=y,kind='bar'))
 
+plt.ylabel("Percentage")
+plt.xlabel("Normalised asymmetry of intention at start")
+plt.legend(loc="upper right")
 
 plt.show()
