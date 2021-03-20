@@ -2,13 +2,18 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import itertools
 
 results_8 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/5/results_8.p")
 results_10 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/5/results_10.p")
 results_12 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/5/results_12.p")
 #results_14 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulation/Finalrun/4/results_14.p")
 
+results_10["simulation_number"] = results_10["simulation_number"] + 3600
+results_12["simulation_number"] = results_12["simulation_number"] + 7200
+
 results = pd.concat([results_8, results_10, results_12])
+
 
 # As a default, set the asymmetry level to 0 when the overlap is 0 (as the asymmetry doesn't play a role)
 results.loc[results.overlap == 0, "asymmetry"] = 0
@@ -247,82 +252,105 @@ sns.set(font_scale=1.6, palette=sns.color_palette(colors), style="whitegrid")
 # ------------------------------------------- Plots for robustness check -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 
-# Normalised asymmetry of intention for different conditions heatmap
-df["normalised_asymmetry_intention"] = df["normalised_asymmetry_intention"].astype(float)
-df["normalised_asymmetry"] = df["normalised_asymmetry"].astype(float)
-
-repair0 = df[df["n_repair"] == 0]
-repair1 = df[df["n_repair"] == 1]
-repair2 = df[df["n_repair"] == 2]
-repair3 = df[df["n_repair"] == 3]
-
-data1 = pd.pivot_table(repair0, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-data2 = pd.pivot_table(repair1, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-data3 = pd.pivot_table(repair2, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-data4 = pd.pivot_table(repair3, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-
-fig, ax = plt.subplots(1, 4)
-sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
-sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
-sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
-sns.heatmap(data4, ax=ax[3], vmin=0, vmax=1, cmap="Blues", annot=True, yticklabels=False)
-
-ax[0].set_title("nRepair = 0")
-ax[1].set_title("nRepair = 1")
-ax[2].set_title("nRepair = 2")
-ax[3].set_title("nRepair = 3")
-fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
-fig.text(0.08, 0.5, 'Number of nodes', ha='center', va='center', rotation='vertical')
-ax[0].set(ylabel="", xlabel="")
-ax[1].set(ylabel="", xlabel="")
-ax[2].set(ylabel="", xlabel="")
-ax[3].set(ylabel="", xlabel="")
-
-plt.show()
-
-# Normalised asymmetry of network for different conditions heatmap
-data1 = pd.pivot_table(repair0, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-data2 = pd.pivot_table(repair1, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-data3 = pd.pivot_table(repair2, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-data4 = pd.pivot_table(repair3, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-
-fig, ax = plt.subplots(1, 4)
-sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
-sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
-sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
-sns.heatmap(data4, ax=ax[3], vmin=0, vmax=1, cmap="Blues", annot=True, yticklabels=False)
-
-ax[0].set_title("nRepair = 0")
-ax[1].set_title("nRepair = 1")
-ax[2].set_title("nRepair = 2")
-ax[3].set_title("nRepair = 3")
-fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
-fig.text(0.08, 0.5, 'Number of nodes', ha='center', va='center', rotation='vertical')
-ax[0].set(ylabel="", xlabel="")
-ax[1].set(ylabel="", xlabel="")
-ax[2].set(ylabel="", xlabel="")
-ax[3].set(ylabel="", xlabel="")
-
-plt.show()
+# # Normalised asymmetry of intention for different conditions heatmap
+# df["normalised_asymmetry_intention"] = df["normalised_asymmetry_intention"].astype(float)
+# df["normalised_asymmetry"] = df["normalised_asymmetry"].astype(float)
+#
+# repair0 = df[df["n_repair"] == 0]
+# repair1 = df[df["n_repair"] == 1]
+# repair2 = df[df["n_repair"] == 2]
+# repair3 = df[df["n_repair"] == 3]
+#
+# data1 = pd.pivot_table(repair0, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
+# data2 = pd.pivot_table(repair1, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
+# data3 = pd.pivot_table(repair2, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
+# data4 = pd.pivot_table(repair3, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
+#
+# fig, ax = plt.subplots(1, 4)
+# sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
+# sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
+# sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
+# sns.heatmap(data4, ax=ax[3], vmin=0, vmax=1, cmap="Blues", annot=True, yticklabels=False)
+#
+# ax[0].set_title("nRepair = 0")
+# ax[1].set_title("nRepair = 1")
+# ax[2].set_title("nRepair = 2")
+# ax[3].set_title("nRepair = 3")
+# fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
+# fig.text(0.08, 0.5, 'Number of nodes', ha='center', va='center', rotation='vertical')
+# ax[0].set(ylabel="", xlabel="")
+# ax[1].set(ylabel="", xlabel="")
+# ax[2].set(ylabel="", xlabel="")
+# ax[3].set(ylabel="", xlabel="")
+#
+# plt.show()
+#
+# # Normalised asymmetry of network for different conditions heatmap
+# data1 = pd.pivot_table(repair0, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
+# data2 = pd.pivot_table(repair1, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
+# data3 = pd.pivot_table(repair2, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
+# data4 = pd.pivot_table(repair3, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
+#
+# fig, ax = plt.subplots(1, 4)
+# sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
+# sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
+# sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
+# sns.heatmap(data4, ax=ax[3], vmin=0, vmax=1, cmap="Blues", annot=True, yticklabels=False)
+#
+# ax[0].set_title("nRepair = 0")
+# ax[1].set_title("nRepair = 1")
+# ax[2].set_title("nRepair = 2")
+# ax[3].set_title("nRepair = 3")
+# fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
+# fig.text(0.08, 0.5, 'Number of nodes', ha='center', va='center', rotation='vertical')
+# ax[0].set(ylabel="", xlabel="")
+# ax[1].set(ylabel="", xlabel="")
+# ax[2].set(ylabel="", xlabel="")
+# ax[3].set(ylabel="", xlabel="")
+#
+# plt.show()
+#
+# # ----------------------------------------------------------------------------------------------------------------------
+# # --------------------------------------- Confirmation vs disconfirmation? ---------------------------------------------
+# # ----------------------------------------------------------------------------------------------------------------------
+# df_start_asym = df_start[["normalised_asymmetry_start", "simulation_number", "normalised_asymmetry_intention_start",
+#                           "normalised asymmetry intention bins", "normalised_asymmetry_bins"]]
+# results2 = pd.merge(results, df_start_asym, on="simulation_number")
+#
+# test = results2.groupby(["normalised asymmetry intention bins", "n_repair"])["confirmation?"].value_counts().reset_index(name='Counts')
+# grouped_df = test.groupby(['normalised asymmetry intention bins', 'n_repair', 'confirmation?']).agg({'Counts': 'sum'})
+# percents_df = grouped_df.groupby(level=[0,1]).apply(lambda x: 100 * x / float(x.sum()))
+# percents_df.reset_index(inplace=True)
+# percents_df["total"] = 100
+# percents_df_confirmation = percents_df[percents_df["confirmation?"] == True]
+#
+# sns.barplot(x="normalised asymmetry intention bins", y="Counts", hue="n_repair", data=percents_df_confirmation, palette=sns.color_palette(colors[5:]))
+# plt.ylabel("Percentage confirmation")
+# plt.xlabel("Normalised asymmetry of intention at start")
+#
+# plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
-# --------------------------------------- Confirmation vs disconfirmation? ---------------------------------------------
+# ---------------------- Intention communicated without producer communicating it directly? ----------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-df_start_asym = df_start[["normalised_asymmetry_start", "simulation_number", "normalised_asymmetry_intention_start",
-                          "normalised asymmetry intention bins", "normalised_asymmetry_bins"]]
-results2 = pd.merge(results, df_start_asym, on="simulation_number")
+# Compare producer's utterances with intention
+results.dropna(subset=["utterance speaker"], inplace=True)
+results = results[results['utterance speaker'].map(lambda d: len(d)) > 0]
+results["utterance speaker"] = results["utterance speaker"].apply(lambda x: [a_tuple[0] for a_tuple in x])
+grouped_df = results.groupby("simulation_number")
+grouped_lists = grouped_df["utterance speaker"].apply(list)
+grouped_lists = grouped_lists.reset_index()
+grouped_lists["utterance speaker"] = grouped_lists["utterance speaker"].apply(lambda x: list(itertools.chain(*x)))
+final = pd.merge(grouped_lists, df, on=["simulation_number"])
+final["intention"] = final["intention"].apply(set)
+final["utterance speaker_x"] = final["utterance speaker_x"].apply(set)
+result = [x.issubset(y) for x, y in zip(final["intention"], final["utterance speaker_x"])]
+final["utterances_intention"] = result
+final_new = pd.merge(final, df_start, on=["simulation_number"])
 
-test = results2.groupby(["normalised asymmetry intention bins", "n_repair"])["confirmation?"].value_counts().reset_index(name='Counts')
-grouped_df = test.groupby(['normalised asymmetry intention bins', 'n_repair', 'confirmation?']).agg({'Counts': 'sum'})
-print(grouped_df)
-percents_df = grouped_df.groupby(level=[0,1]).apply(lambda x: 100 * x / float(x.sum()))
-percents_df.reset_index(inplace=True)
-percents_df["total"] = 100
-print(percents_df)
-percents_df_confirmation = percents_df[percents_df["confirmation?"] == True]
-
-sns.barplot(x="normalised asymmetry intention bins", y="Counts", hue="n_repair", data=percents_df_confirmation, palette=sns.color_palette(colors[5:]))
-plt.ylabel("Percentage confirmation")
+sns.countplot(x="normalised_asymmetry_bins", hue="utterances_intention", data=final_new)
 plt.xlabel("Normalised asymmetry of intention at start")
+plt.legend(title="Complete intention uttered")
 
 plt.show()
+
