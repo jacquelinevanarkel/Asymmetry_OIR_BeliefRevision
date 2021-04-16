@@ -315,6 +315,8 @@ colors = ['#bdd7e7', '#6baed6', '#3182bd', '#bdd7e7', '#6baed6', '#3182bd', '#08
 g = sns.FacetGrid(col="n_nodes", data=results_state, palette=colors)
 results_state["normalised_asymmetry_network"] = results_state["asymmetry_count"]/results_state["n_nodes"]
 results_state["normalised_asymmetry_network"] = results_state["normalised_asymmetry_network"].astype(float)
+results_state["normalised_asymmetry_intention"] = results_state["asymmetry_intention"]/(results_state['intention'].str.len())
+results_state["normalised_asymmetry_intention"] = results_state["normalised_asymmetry_intention"].astype(float)
 
 g.map(sns.lineplot, "state conversation", "normalised_asymmetry_network", "n_repair")
 
@@ -337,8 +339,10 @@ plt.show()
 # Plot for all the nodes together
 colors = ['#bdd7e7', '#6baed6', '#3182bd', '#08519c']
 sns.set(font_scale=1.5)
-#g = sns.pointplot(x="state conversation", y="normalised_asymmetry_network", hue="n_repair", palette=colors, data=results_state)
-
+g = sns.lineplot(x="state conversation", y="normalised_asymmetry_intention", hue="n_repair", palette=colors, data=results_state)
+plt.ylabel("Normalised asymmetry of the intention")
+plt.xlabel("Turns in a conversation")
+plt.show()
 
 results_state_0 = results_state[results_state["n_repair"] == 0]
 results_state_1 = results_state[results_state["n_repair"] == 1]
@@ -348,14 +352,14 @@ results_state_3 = results_state[results_state["n_repair"] == 3]
 plt.figure()
 
 plt.subplot(141)
-plt.plot("state conversation", "normalised_asymmetry_network", color='#bdd7e7', data=results_state_0)
+plt.plot("state conversation", "normalised_asymmetry_intention", color='#bdd7e7', data=results_state_0)
 
 ax = plt.gca()
 ax.axes.get_xaxis().set_visible(False)
 
 plt.title("(a) nRepair = 0")
 #plt.xlabel("Course of a conversation")
-plt.ylabel("Normalised asymmetry of network")
+plt.ylabel("Normalised asymmetry of intention")
 # plt.xticks(
 #     rotation=15,
 #     horizontalalignment='right',
@@ -365,7 +369,7 @@ plt.ylabel("Normalised asymmetry of network")
 #plt.show()
 
 plt.subplot(142)
-plt.plot("state conversation", "normalised_asymmetry_network", color='#6baed6', data=results_state_1)
+plt.plot("state conversation", "normalised_asymmetry_intention", color='#6baed6', data=results_state_1)
 
 ax = plt.gca()
 ax.axes.get_xaxis().set_visible(False)
@@ -382,7 +386,7 @@ plt.ylabel("")
 #plt.show()
 
 plt.subplot(143)
-plt.plot("state conversation", "normalised_asymmetry_network", color='#3182bd', data=results_state_2)
+plt.plot("state conversation", "normalised_asymmetry_intention", color='#3182bd', data=results_state_2)
 
 ax = plt.gca()
 ax.axes.get_xaxis().set_visible(False)
@@ -399,7 +403,7 @@ plt.ylabel("")
 #plt.show()
 
 plt.subplot(144)
-plt.plot("state conversation", "normalised_asymmetry_network", color='#08519c', data=results_state_3)
+plt.plot("state conversation", "normalised_asymmetry_intention", color='#08519c', data=results_state_3)
 
 ax = plt.gca()
 ax.axes.get_xaxis().set_visible(False)
@@ -413,6 +417,10 @@ plt.ylim(top=1)
 #     horizontalalignment='right',
 #     fontweight='light'
 # )
+
+plt.show()
+
+plt.plot("state conversation", "normalised_asymmetry_intention", data=results_state_0)
 
 plt.show()
 
