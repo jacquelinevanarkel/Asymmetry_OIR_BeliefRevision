@@ -13,6 +13,11 @@ results_12 = pd.read_pickle("/Users/Jacqueline/Documents/Master_Thesis/Simulatio
 results_10["simulation_number"] = results_10["simulation_number"] + 3600
 results_12["simulation_number"] = results_12["simulation_number"] + 7200
 
+# Because the n_repair=3 data is very sparse, I remove it from the data for now
+results_8 = results_8[results_8["n_repair"] < 3]
+results_10 = results_10[results_10["n_repair"] < 3]
+results_12 = results_12[results_12["n_repair"] < 3]
+
 # Concatenate the results so the results with different network sizes are contained in one dataframe
 results = pd.concat([results_8, results_10, results_12])
 
@@ -40,13 +45,13 @@ print("n results 12 nodes: ", len(df[df['n_nodes'] == 12]))
 pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.max_colwidth', None)
 
 # Seaborn settings used for plots
-palette_new = sns.color_palette("colorblind", 5)
-palette = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745), (0.8705882352941177, 0.5607843137254902,
-                                                                            0.0196078431372549), (0.00784313725490196,
-                                                                                                  0.6196078431372549,
-                                                                                                  0.45098039215686275),
-           (0.8, 0.47058823529411764, 0.7372549019607844)]
-sns.set(font_scale=1.6, style="whitegrid")
+palette = sns.color_palette("colorblind", 3)
+#palette = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745), (0.8705882352941177, 0.5607843137254902,
+#                                                                            0.0196078431372549), (0.00784313725490196,
+#                                                                                                  0.6196078431372549,
+#                                                                                                  0.45098039215686275),
+#           (0.8, 0.47058823529411764, 0.7372549019607844)]
+sns.set(font_scale=1.6, style="whitegrid", palette=palette)
 
 # Define the blue colors used for plotting
 colors = ['#bdd7e7', '#6baed6', '#3182bd', '#08519c']
@@ -224,7 +229,8 @@ plt.show()
 results["repair_length"] = results["repair request"].str.len()/results["n_nodes"]
 
 # Get the starting asymmetry
-results["start_asym"] = np.where(results["conversation state"] == "Start", results["asymmetry_intention"], np.nan)
+# results_new["start_asym"] = np.where(results_new["conversation state"] == "Start", results_new["asymmetry_intention"], np.nan)
+# results_new["start_asym_norm"] = results_new["start_asym"]/(results_new['intention'].str.len())
 
 # Create a dataframe with the mean repair length for the different times that repair is initiated in conversation for
 # every conversation
@@ -234,21 +240,20 @@ new = pd.merge(df_start, repair_length, on="simulation_number")
 new2 = new[new['n_repair_y'] > 0]
 new2.rename(columns={"n_repair_y": "nRepair"}, inplace=True)
 
-# ax = sns.factorplot(x="normalised asymmetry intention bins", y="Mean", hue="n_repair_y", data=new2, palette=["#fdae61", "#f46d43", "#a50026"])
-# sns.stripplot(x="normalised asymmetry intention bins", y="Mean", hue="n_repair_y", data=new2, jitter=True, dodge=True, palette=sns.color_palette(colors[5:]))
-# ax = sns.lmplot(x="normalised_asymmetry_intention_start", y="Mean", hue="n_repair_y", data=new2, palette=["#abd9e9", "#4575b4", "#313695"])
-#
-# plt.ylabel("Mean normalised length of the repair initiations")
-# plt.xlabel("Normalised asymmetry of intention at start")
-# ax.set(ylim=(0, 1))
-# plt.legend(loc="upper left", title="nRepair", bbox_to_anchor=(1.05, 1))
+ax = sns.barplot(x="normalised asymmetry intention bins", y="Mean", hue="nRepair", data=new2, palette=palette[1:])
+sns.stripplot(x="normalised asymmetry intention bins", y="Mean", hue="nRepair", data=new2, jitter=True, dodge=True,
+              palette=palette[1:], linewidth=0.7)
 
-g = sns.jointplot(x="normalised_asymmetry_intention_start", y="Mean", hue="nRepair", data=new2, palette=palette[1:],
-                  kind="kde", fill=True, alpha=0.5)
-ax = g.ax_joint
-g.set_axis_labels("Normalised asymmetry of intention at start", "Normalised length of the repair initiations")
-ax.set(ylim=(0, 1), xticks=np.arange(0.0, 1.1, 0.1).tolist(), xlim=(-0.01, 1.01))
-ax.legend(title="nRepair")
+plt.ylabel("Normalised length of the repair initiations")
+plt.xlabel("Normalised asymmetry of intention at start")
+ax.set(ylim=(0, 1))
+# Get the handles and labels. For this example it'll be 2 tuples
+# of length 4 each.
+handles, labels = ax.get_legend_handles_labels()
+
+# When creating the legend, only use the last two elements
+# to effectively remove the first two.
+l = plt.legend(handles[2:], labels[2:], bbox_to_anchor=(1, 1), loc=2, title="nRepair")
 
 plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
@@ -258,33 +263,33 @@ plt.show()
 # Plot the percentages of how often repair is initiated for different starting asymmetry levels
 
 # Get the counts and turn them into percentages
-counts = df_compare.groupby(['normalised asymmetry intention bins'])['n_repair'].value_counts().\
+counts = df_compare.groupby(['normalised asymmetry intention bins'])['nRepair'].value_counts().\
     reset_index(name='Counts')
-grouped_df = counts.groupby(['normalised asymmetry intention bins', 'n_repair']).agg({'Counts': 'sum'})
+grouped_df = counts.groupby(['normalised asymmetry intention bins', 'nRepair']).agg({'Counts': 'sum'})
 percents_df = grouped_df.groupby(level=0).apply(lambda x: 100 * x / float(x.sum()))
 percents_df.reset_index(inplace=True)
 
 # Separate the different repair cases
-n_0 = percents_df[percents_df["n_repair"] == 0]
-n_0 = n_0.drop(columns=['n_repair'])
+n_0 = percents_df[percents_df["nRepair"] == 0]
+n_0 = n_0.drop(columns=['nRepair'])
 n_0 = n_0.set_index("normalised asymmetry intention bins")
-n_1 = percents_df[percents_df["n_repair"] == 1]
-n_1 = n_1.drop(columns=['n_repair'])
+n_1 = percents_df[percents_df["nRepair"] == 1]
+n_1 = n_1.drop(columns=['nRepair'])
 n_1 = n_1.set_index("normalised asymmetry intention bins")
-n_2 = percents_df[percents_df["n_repair"] == 2]
-n_2 = n_2.drop(columns=['n_repair'])
+n_2 = percents_df[percents_df["nRepair"] == 2]
+n_2 = n_2.drop(columns=['nRepair'])
 n_2 = n_2.set_index("normalised asymmetry intention bins")
-n_3 = percents_df[percents_df["n_repair"] == 3]
-n_3 = n_3.drop(columns=['n_repair'])
-n_3 = n_3.set_index("normalised asymmetry intention bins")
+# n_3 = percents_df[percents_df["nRepair"] == 3]
+# n_3 = n_3.drop(columns=['nRepair'])
+# n_3 = n_3.set_index("normalised asymmetry intention bins")
 
 # Add the repair percentages together in order to be able to create a stacked plot
 n_1 = n_1.add(n_0, fill_value=0)
 n_2 = n_2.add(n_1, fill_value=0)
-n_3 = n_3.add(n_2, fill_value=0)
+#n_3 = n_3.add(n_2, fill_value=0)
 
 # Plot the different repair cases on top of each other to get a stacked barplot
-a = sns.barplot(x=n_3.index, y="Counts", data=n_3, color=colors[7])
+#a = sns.barplot(x=n_3.index, y="Counts", data=n_3, color=colors[7])
 b = sns.barplot(x=n_2.index, y="Counts", data=n_2, color=colors[6])
 c = sns.barplot(x=n_1.index, y="Counts", data=n_1, color=colors[5])
 d = sns.barplot(x=n_0.index, y="Counts", data=n_0, color=colors[4])
@@ -295,8 +300,8 @@ plt.xlabel("Normalised asymmetry of intention at start")
 e = plt.Rectangle((0, 0), 1, 1, fc=colors[4], edgecolor='none')
 f = plt.Rectangle((0, 0), 1, 1, fc=colors[5],  edgecolor='none')
 g = plt.Rectangle((0, 0), 1, 1, fc=colors[6], edgecolor='none')
-h = plt.Rectangle((0, 0), 1, 1, fc=colors[7],  edgecolor='none')
-plt.legend(title="nRepair", handles=[e, f, g, h], labels=["0", "1", "2", "3"], bbox_to_anchor=(1.01, 1))
+#h = plt.Rectangle((0, 0), 1, 1, fc=colors[7],  edgecolor='none')
+plt.legend(title="nRepair", handles=[e, f, g], labels=["0", "1", "2"], bbox_to_anchor=(1.01, 1))
 
 plt.show()
 
