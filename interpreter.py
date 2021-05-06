@@ -24,6 +24,8 @@ class InterpreterModel:
     def belief_revision(self):
         """
         Make inferences that maximise coherence after new node(s) have been communicated.
+        :return: list; the node(s) included in the restricted offer
+                 graph; the interpreter's network after belief revision
         """
 
         # Store the coherence of the belief_network before the belief revision has taken place
@@ -105,7 +107,9 @@ class InterpreterModel:
 
     def trouble_identification(self):
         """
-        Compares the coherence of the current belief belief_network with the previous one (before last communicated node(s)).
+        Compares the coherence of the current belief belief_network with the previous one (before last communicated
+        node(s)).
+        :return: list; the node(s) included in the restricted offer
         """
 
         # Initiate repair if the coherence is smaller than one time step back
@@ -174,7 +178,8 @@ class InterpreterModel:
         # The node(s) to be asked repair over are stored in a list containing tuples (a tuple per node to ask repair
         # over) consisting of the node index and its truth value
         for not_comm_node in not_comm_nodes:
-            if network_copy.nodes[not_comm_node]['truth_value'] != self.belief_network.nodes[not_comm_node]['truth_value']:
+            if network_copy.nodes[not_comm_node]['truth_value'] != \
+                    self.belief_network.nodes[not_comm_node]['truth_value']:
                 repair_initiation.append((not_comm_node, self.belief_network.nodes[not_comm_node]['truth_value']))
                 self.belief_network.nodes[not_comm_node]['repair'] = True
 

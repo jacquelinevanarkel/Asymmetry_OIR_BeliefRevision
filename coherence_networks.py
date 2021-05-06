@@ -82,11 +82,6 @@ class CoherenceNetworks:
         for edge in list(graph.edges()):
             graph[edge[0]][edge[1]]["constraint"] = constraints[i]
             i += 1
-        # print(constraints)
-        # print(graph.edges(data=True))
-        # nx.set_edge_attributes(graph, constraints, "constraint")
-        # print("Prob pos edges: ", self.prob_pos_edges)
-        # print("Number of edges: ", self.n_edges)
 
         # Draw the graph
         # colours = ["green" if x == "positive" else "red" for x in constraints]
@@ -94,7 +89,3 @@ class CoherenceNetworks:
         # plt.show()
 
         return graph
-
-
-if __name__ == '__main__':
-    CoherenceNetworks(8, 'middle', 'high').create_graph()

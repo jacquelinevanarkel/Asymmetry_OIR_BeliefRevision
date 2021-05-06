@@ -47,11 +47,6 @@ pd.set_option("display.max_rows", None, "display.max_columns", None, 'display.ma
 
 # Seaborn settings used for plots
 palette = sns.color_palette("colorblind", 3)
-#palette = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745), (0.8705882352941177, 0.5607843137254902,
-#                                                                            0.0196078431372549), (0.00784313725490196,
-#                                                                                                  0.6196078431372549,
-#                                                                                                  0.45098039215686275),
-#           (0.8, 0.47058823529411764, 0.7372549019607844)]
 sns.set(font_scale=1.6, style="whitegrid", palette=palette)
 
 # Define the blue colors used for plotting
@@ -103,89 +98,47 @@ df_start_asym = df_start[["normalised_asymmetry_start", "simulation_number_new",
 # Concatenate the dataframes that contain the starting and end conditions of a conversation
 df_compare = pd.merge(df, df_start_asym, on="simulation_number_new")
 
-# # Start plotting
-#
-# #sns.barplot(x="normalised_asymmetry_start", y="normalised_asymmetry", hue="n_repair", data=df_compare)
-# # ax = sns.factorplot(x="normalised_asymmetry_bins", y="normalised_asymmetry", hue="n_repair", data=df_compare, colors=colors[:4])
-# # sns.stripplot(x="normalised_asymmetry_bins", y="normalised_asymmetry", hue="n_repair", data=df_compare, jitter=True, dodge=True, palette=sns.color_palette(colors[4:]))
-# # ax = sns.factorplot(x="normalised_asymmetry_start", y="normalised_asymmetry", hue="n_repair", data=df_compare, colors=colors[:4])
-# # sns.stripplot(x="normalised_asymmetry_start", y="normalised_asymmetry", hue="n_repair", data=df_compare, jitter=True, dodge=True, palette=sns.color_palette(colors[4:]))
-# #sns.scatterplot(x="normalised_asymmetry_start", y="normalised_asymmetry", hue="n_repair", data=df_size, size="Counts", palette=sns.color_palette(colors[4:]))
-# #sns.relplot(x="normalised_asymmetry_start", y="normalised_asymmetry", hue="n_repair", data=df_size, size="Counts", palette=sns.color_palette(colors[4:]), kind="strip")
-#
-# df_compare['network_asymmetry_norm'] = df_compare['network_asymmetry_norm'].astype(float)
-# df_compare['network_asymmetry_start_norm'] = df_compare['network_asymmetry_start_norm'].astype(float)
-# #ax = sns.lmplot(x='normalised_asymmetry_start', y='normalised_asymmetry', hue='n_repair', data=df_compare)
-# #ax = sns.lmplot(x='network_asymmetry_start_norm', y='network_asymmetry_norm', hue='n_repair', data=df_compare)
-#
-# counts = df_compare.groupby(["network_asymmetry_norm", "network_asymmetry_start_norm"])["n_repair"].value_counts().reset_index(name='Counts')
-# counts.reset_index(inplace=True)
-#
-# g= sns.relplot(x='network_asymmetry_start_norm', y='network_asymmetry_norm', hue='n_repair', palette=palette,
-#               style="n_repair", size="Counts", alpha=.5, sizes=(100, 600), data=counts)
-#
-# plt.show()
-#
-# df_compare.rename(columns={"n_repair": "nRepair"}, inplace=True)
-# g = sns.jointplot(x='network_asymmetry_start_norm', y='network_asymmetry_norm', hue='nRepair', palette=palette, data=df_compare, kind="kde", fill=True, alpha=0.5)
-# #g= sns.jointplot(x='network_asymmetry_start_norm', y='network_asymmetry_norm', hue='n_repair', palette=palette, data=df_compare, alpha=0.5)
-# #g= sns.scatterplot(x='network_asymmetry_start_norm', y='network_asymmetry_norm', hue='n_repair', palette=palette, style="n_repair", data=df_compare)
-#
-# ax = g.ax_joint
-# ax.set(ylim=(-0.05,1.05), xticks=np.arange(0.0, 1.1, 0.1).tolist(), xlim=(-0.01, 1.01))
-#
-# g.set_axis_labels("Normalised asymmetry of networks minus the intention at start", "Remaining normalised asymmetry of networks minus the intention")
-# # plt.ylabel("Remaining normalised asymmetry of networks minus the intention")
-# # plt.xlabel("Normalised asymmetry of networks minus the intention at start")
-#
-# # # Get the handles and labels. For this example it'll be 2 tuples
-# # # of length 4 each.
-# # handles, labels = ax.get_legend_handles_labels()
-# #
-# # # When creating the legend, only use the first two elements
-# # # to effectively remove the last two.
-# # l = plt.legend(handles[0:4], labels[0:4], loc="upper left", title="n_repair")
-#
-# #ax.legend(title="nRepair")
-# #plt.legend(loc="upper left", title="nRepair", bbox_to_anchor=(1.05, 1))
-# #plt.plot([0, 0.5, 1], [0, 0.5, 1], 'o:', color='blue')
-#
-# # Draw a line of x=y
-# x0, x1 = g.ax_joint.get_xlim()
-# y0, y1 = g.ax_joint.get_ylim()
-# lims = [max(x0, y0), min(x1, y1)]
-# g.ax_joint.plot(lims, lims, '-r')
-#
-# plt.show()
-#
-# # Same plot but for intention
-# #sns.barplot(x="normalised_asymmetry_start", y="normalised_asymmetry", hue="n_repair", data=df_compare)
-# # ax = sns.factorplot(x="normalised asymmetry intention bins", y="normalised_asymmetry_intention", hue="n_repair", data=df_compare, colors=colors[:4])
-# # sns.stripplot(x="normalised asymmetry intention bins", y="normalised_asymmetry_intention", hue="n_repair", data=df_compare, jitter=True, dodge=True, palette=sns.color_palette(colors[4:]))
-#
-# df_compare["normalised_asymmetry_intention"] = df_compare["normalised_asymmetry_intention"].astype(float)
-# g = sns.jointplot(x='normalised_asymmetry_intention_start', y='normalised_asymmetry_intention', hue='nRepair', palette=palette, data=df_compare, kind="kde", fill=True, alpha=0.5)
-# ax = g.ax_joint
-# g.set_axis_labels("Normalised asymmetry of intention at start", "Remaining normalised asymmetry of intention")
-# ax.set(ylim=(-0.05,1.05), xticks=np.arange(0.0, 1.1, 0.1).tolist(), xlim=(-0.01, 1.01))
-#
-# #ax = sns.lmplot(x='normalised_asymmetry_intention_start', y='normalised_asymmetry_intention', hue='n_repair', markers=["o", "x", "^", "*"], x_ci="sd", data=df_compare)
-#
-# #ax.set(ylim=(-0.05,1.05), xticks=np.arange(0.0, 1.1, 0.1).tolist(), xlim=(-0.01, 1.01))
-#
-# # plt.ylabel("Remaining normalised asymmetry of intention")
-# # plt.xlabel("Normalised asymmetry of intention at start")
-# # plt.legend(loc="upper left", title="nRepair", bbox_to_anchor=(1.05, 1))
-# #plt.plot([0, 0.5, 1], [0, 0.5, 1], 'o:', color='blue')
-# #ax.legend(title="nRepair")
-#
-# # Draw a line of x=y
-# x0, x1 = g.ax_joint.get_xlim()
-# y0, y1 = g.ax_joint.get_ylim()
-# lims = [max(x0, y0), min(x1, y1)]
-# g.ax_joint.plot(lims, lims, '-r')
-#
-# plt.show()
+# Start plotting
+df_compare["network_asymmetry_start_norm"] = df_compare["network_asymmetry_start_norm"].astype(float)
+df_compare["network_asymmetry_norm"] = df_compare["network_asymmetry_norm"].astype(float)
+
+df_compare.rename(columns={"n_repair": "nRepair"}, inplace=True)
+g = sns.jointplot(x='network_asymmetry_start_norm', y='network_asymmetry_norm', hue='nRepair', palette=palette,
+                  data=df_compare, kind="kde", fill=True, alpha=0.5)
+
+# Set the axis
+ax = g.ax_joint
+ax.set(ylim=(-0.05,1.05), xticks=np.arange(0.0, 1.1, 0.1).tolist(), xlim=(-0.01, 1.01))
+
+g.set_axis_labels("Normalised asymmetry of networks minus the intention at start",
+                  "Remaining normalised asymmetry of networks minus the intention")
+
+# Draw a line of x=y
+x0, x1 = g.ax_joint.get_xlim()
+y0, y1 = g.ax_joint.get_ylim()
+lims = [max(x0, y0), min(x1, y1)]
+g.ax_joint.plot(lims, lims, '-r')
+
+plt.show()
+
+# Same plot but for intention
+
+df_compare["normalised_asymmetry_intention"] = df_compare["normalised_asymmetry_intention"].astype(float)
+g = sns.jointplot(x='normalised_asymmetry_intention_start', y='normalised_asymmetry_intention', hue='nRepair',
+                  palette=palette, data=df_compare, kind="kde", fill=True, alpha=0.5)
+ax = g.ax_joint
+
+# Set axis
+g.set_axis_labels("Normalised asymmetry of intention at start", "Remaining normalised asymmetry of intention")
+ax.set(ylim=(-0.05,1.05), xticks=np.arange(0.0, 1.1, 0.1).tolist(), xlim=(-0.01, 1.01))
+
+# Draw a line of x=y
+x0, x1 = g.ax_joint.get_xlim()
+y0, y1 = g.ax_joint.get_ylim()
+lims = [max(x0, y0), min(x1, y1)]
+g.ax_joint.plot(lims, lims, '-r')
+
+plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ------------------------------------ perceived vs non perceived misunderstanding -------------------------------------
@@ -193,21 +146,29 @@ df_compare = pd.merge(df, df_start_asym, on="simulation_number_new")
 # Perceived cases where repair is initiated, non perceived cases where repair is not initiated and there is some
 # asymmetry in the intention
 
-#df_start_asym = df_start[["normalised_asymmetry_intention", "simulation_number_new"]]
-#df_compare2 = df.join(df_start_asym.set_index('simulation_number_new'), on="simulation_number_new", rsuffix="_start")
-#df_compare["non_perceived"] = np.where((df_compare["normalised_asymmetry_intention_start"] != 0) & (df_compare["n_repair"] == 0), True, False)
-df_compare["non_perceived"] = np.where((df_compare["nRepair"] == 0) & (df_compare['normalised_asymmetry_intention'] > 0), True, False)
-counts = df_compare.groupby(['normalised asymmetry intention bins'])['non_perceived'].value_counts().reset_index(name='Counts')
+# Determine when the asymmetry was perceived or not perceived: when no repair is initiated and the asymmetry of the
+# intention is higher than 0, the asymmetry is not perceived
+df_compare["non_perceived"] = np.where((df_compare["nRepair"] == 0) & (df_compare['normalised_asymmetry_intention'] > 0)
+                                       , True, False)
+
+# Count how often the asymmetry is perceived
+counts = df_compare.groupby(['normalised asymmetry intention bins'])['non_perceived'].value_counts().\
+    reset_index(name='Counts')
 grouped_df = counts.groupby(['normalised asymmetry intention bins', 'non_perceived']).agg({'Counts': 'sum'})
+
+# Calculate the percentages
 percents_df = grouped_df.groupby(level=0).apply(lambda x: 100 * x / float(x.sum()))
 percents_df.reset_index(inplace=True)
 percents_df["total"] = 100
 percents_df_perceived = percents_df[percents_df["non_perceived"] == False]
 
+# Make a stacked plot of how often the asymmetry is perceived and not perceived in percentages
 sns.barplot(x="normalised asymmetry intention bins", y="total", data=percents_df, ci=None, color='#bdd7e7')
 
-g = sns.barplot(x="normalised asymmetry intention bins", y="Counts", data=percents_df_perceived, ci=None, color='#6baed6')
+g = sns.barplot(x="normalised asymmetry intention bins", y="Counts", data=percents_df_perceived, ci=None,
+                color='#6baed6')
 
+# Set the legend, draw a black line on 50% and set the axis labels
 plt.legend(["not perceived", "perceived"])
 g.axhline(y=50, color='black', linestyle='dashed')
 plt.ylabel("Percentage")
@@ -221,10 +182,6 @@ plt.show()
 # Calculate the length of the repair requests
 results["repair_length"] = results["repair request"].str.len()/results["n_nodes"]
 
-# Get the starting asymmetry
-# results_new["start_asym"] = np.where(results_new["conversation state"] == "Start", results_new["asymmetry_intention"], np.nan)
-# results_new["start_asym_norm"] = results_new["start_asym"]/(results_new['intention'].str.len())
-
 # Create a dataframe with the mean repair length for the different times that repair is initiated in conversation for
 # every conversation
 repair_length = results.groupby(['simulation_number', 'n_repair'])['repair_length'].mean().reset_index(name='Mean')
@@ -236,13 +193,16 @@ new2.rename(columns={"n_repair_y": "nRepair"}, inplace=True)
 # Increase the font size
 sns.set(font_scale=1.9, style="whitegrid")
 
+# Plot the repair length as a barplot and add a stripplot to show the data points
 ax = sns.barplot(x="normalised asymmetry intention bins", y="Mean", hue="nRepair", data=new2, palette=palette[1:])
 sns.stripplot(x="normalised asymmetry intention bins", y="Mean", hue="nRepair", data=new2, jitter=True, dodge=True,
               palette=palette[1:], linewidth=0.7)
 
+# Set the axis labels and limits
 plt.ylabel("Normalised length of the repair initiations")
 plt.xlabel("Normalised asymmetry of intention at start")
 ax.set(ylim=(0, 1))
+
 # Get the handles and labels. For this example it'll be 2 tuples
 # of length 4 each.
 handles, labels = ax.get_legend_handles_labels()
@@ -275,9 +235,6 @@ n_1 = n_1.set_index("normalised asymmetry intention bins")
 n_2 = percents_df[percents_df["nRepair"] == 2]
 n_2 = n_2.drop(columns=['nRepair'])
 n_2 = n_2.set_index("normalised asymmetry intention bins")
-# n_3 = percents_df[percents_df["nRepair"] == 3]
-# n_3 = n_3.drop(columns=['nRepair'])
-# n_3 = n_3.set_index("normalised asymmetry intention bins")
 
 # Add the repair percentages together in order to be able to create a stacked plot
 n_1 = n_1.add(n_0, fill_value=0)
@@ -294,7 +251,6 @@ plt.xlabel("Normalised asymmetry of intention at start")
 e = plt.Rectangle((0, 0), 1, 1, fc=palette[0], edgecolor='none')
 f = plt.Rectangle((0, 0), 1, 1, fc=palette[1],  edgecolor='none')
 g = plt.Rectangle((0, 0), 1, 1, fc=palette[2], edgecolor='none')
-#h = plt.Rectangle((0, 0), 1, 1, fc=colors[7],  edgecolor='none')
 plt.legend(title="nRepair", handles=[e, f, g], labels=["0", "1", "2"], bbox_to_anchor=(1.01, 1))
 
 plt.show()
@@ -306,15 +262,18 @@ plt.show()
 # Plot a heatmap showing the normalised asymmetry of the network and intention for the different network sizes and the
 # amount of edges
 
+# Gather the data in a pivot table to create a heatmap
 df["normalised_asymmetry_intention"] = df["normalised_asymmetry_intention"].astype(float)
 df["network_asymmetry_norm"] = df["network_asymmetry_norm"].astype(float)
 total_intention = pd.pivot_table(df, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
 total_network = pd.pivot_table(df, values="network_asymmetry_norm", index=['n_nodes'], columns='amount_edges')
 
+# Plot the asymmetry of the network and intention for the different conditions
 fig, ax = plt.subplots(1, 2)
 sns.heatmap(total_network, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
 sns.heatmap(total_intention, ax=ax[1], vmin=0, vmax=1, cmap="Blues", annot=True)
 
+# Set the axis titles, the titles above the subplots and the axis labels
 ax[0].set_title("Network minus intention")
 ax[1].set_title("Intention")
 fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
@@ -323,59 +282,6 @@ ax[0].set(ylabel="", xlabel="")
 ax[1].set(ylabel="", xlabel="")
 
 plt.show()
-
-# # Create a heatmap of the normalised asymmetry of intention for the different network sizes, amounts of edges and times
-# # that repair is initiated
-#
-# repair0 = df[df["n_repair"] == 0]
-# repair1 = df[df["n_repair"] == 1]
-# repair2 = df[df["n_repair"] == 2]
-#
-# repair0 = repair0["normalised_asymmetry_intention"].astype(float)
-# repair1 = repair1["normalised_asymmetry_intention"].astype(float)
-# repair2 = repair2["normalised_asymmetry_intention"].astype(float)
-#
-# data1 = pd.pivot_table(repair0, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-# data2 = pd.pivot_table(repair1, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-# data3 = pd.pivot_table(repair2, values="normalised_asymmetry_intention", index=['n_nodes'], columns='amount_edges')
-#
-# fig, ax = plt.subplots(1, 3)
-# sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
-# sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
-# sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", annot=True, yticklabels=False)
-#
-# ax[0].set_title("nRepair = 0")
-# ax[1].set_title("nRepair = 1")
-# ax[2].set_title("nRepair = 2")
-# fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
-# fig.text(0.08, 0.5, 'Number of nodes', ha='center', va='center', rotation='vertical')
-# ax[0].set(ylabel="", xlabel="")
-# ax[1].set(ylabel="", xlabel="")
-# ax[2].set(ylabel="", xlabel="")
-#
-# plt.show()
-
-# # Create a heatmap of the normalised asymmetry of the network for the different network sizes, amounts of edges and
-# # times that repair is initiated
-# data1 = pd.pivot_table(repair0, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-# data2 = pd.pivot_table(repair1, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-# data3 = pd.pivot_table(repair2, values="normalised_asymmetry", index=['n_nodes'], columns='amount_edges')
-#
-# fig, ax = plt.subplots(1, 3)
-# sns.heatmap(data1, ax=ax[0], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True)
-# sns.heatmap(data2, ax=ax[1], vmin=0, vmax=1, cmap="Blues", cbar=False, annot=True, yticklabels=False)
-# sns.heatmap(data3, ax=ax[2], vmin=0, vmax=1, cmap="Blues", annot=True, yticklabels=False)
-#
-# ax[0].set_title("nRepair = 0")
-# ax[1].set_title("nRepair = 1")
-# ax[2].set_title("nRepair = 2")
-# fig.text(0.5, 0.01, 'Amount of edges', ha='center', va='center')
-# fig.text(0.08, 0.5, 'Number of nodes', ha='center', va='center', rotation='vertical')
-# ax[0].set(ylabel="", xlabel="")
-# ax[1].set(ylabel="", xlabel="")
-# ax[2].set(ylabel="", xlabel="")
-#
-# plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # --------------------------------------- Confirmation vs disconfirmation? ---------------------------------------------
@@ -411,23 +317,23 @@ plt.show()
 # Compare producer's utterances with intention
 
 # Get the utterances of the producer: when the producer has said something, the utterance length should be bigger than 0
-results.dropna(subset=["utterance producer"], inplace=True)
-results = results[results['utterance producer'].map(lambda d: len(d)) > 0]
-results["utterance producer"] = results["utterance producer"].apply(lambda x: [a_tuple[0] for a_tuple in x])
+results.dropna(subset=["utterance speaker"], inplace=True)
+results = results[results['utterance speaker'].map(lambda d: len(d)) > 0]
+results["utterance speaker"] = results["utterance speaker"].apply(lambda x: [a_tuple[0] for a_tuple in x])
 
 # Per conversation, take together all the utterances of the producer
 grouped_df = results.groupby("simulation_number")
-grouped_lists = grouped_df["utterance producer"].apply(list)
+grouped_lists = grouped_df["utterance speaker"].apply(list)
 grouped_lists = grouped_lists.reset_index()
-grouped_lists["utterance producer"] = grouped_lists["utterance producer"].apply(lambda x: list(itertools.chain(*x)))
+grouped_lists["utterance speaker"] = grouped_lists["utterance speaker"].apply(lambda x: list(itertools.chain(*x)))
 final = pd.merge(grouped_lists, df, on=["simulation_number"])
 
 # Put the intention in the right formatting
 final["intention"] = final["intention"].apply(set)
-final["utterance producer_x"] = final["utterance producer_x"].apply(set)
+final["utterance speaker_x"] = final["utterance speaker_x"].apply(set)
 
 # Check which utterances equal the intention
-result = [x.issubset(y) for x, y in zip(final["intention"], final["utterance producer_x"])]
+result = [x.issubset(y) for x, y in zip(final["intention"], final["utterance speaker_x"])]
 final["utterances_intention"] = result
 final_new = pd.merge(final, df_start, on=["simulation_number"])
 
@@ -443,14 +349,18 @@ percents_df.reset_index(inplace=True)
 percents_df["total"] = 100
 percents_not_communicated = percents_df[percents_df["utterances_intention"] == False]
 
-a = plt.Rectangle((0,0),1,1,fc='#6baed6', edgecolor = 'none')
-b = plt.Rectangle((0,0),1,1,fc='#bdd7e7',  edgecolor = 'none')
+# Plot the percentages of whether the complete intention is uttered for the different times that repair is initiated
 sns.barplot(x="n_repair_x", y="total", data=percents_df, color='#6baed6')
 sns.barplot(x="n_repair_x", y="Counts", data=percents_not_communicated, ci=None, color='#bdd7e7')
 
+# Set the axis labels
 plt.xlabel("nRepair")
 plt.ylabel("Percentage")
-plt.legend(labels=["True", "False"], handles=[a,b], title="Complete intention uttered", loc="upper right")
+
+# Create a legend
+a = plt.Rectangle((0,0),1,1,fc='#6baed6', edgecolor='none')
+b = plt.Rectangle((0,0),1,1,fc='#bdd7e7',  edgecolor='none')
+plt.legend(labels=["True", "False"], handles=[a, b], title="Complete intention uttered", loc="upper right")
 
 plt.show()
 
@@ -459,10 +369,18 @@ plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Plot the asymmetry of the intention for the different numbers of turns and repair initiations in a conversation
+
+# Set the colours
 colors = ["#abd9e9", "#74add1", "#4575b4", "#313695"]
+
+# Calculate the normalised asymmetry of the intention for all the results
 results["normalised_asymmetry_intention"] = results["asymmetry_intention"]/(results['intention'].str.len())
 results["normalised_asymmetry_intention"] = results["normalised_asymmetry_intention"].astype(float)
+
+# Plot the asymmetry of the intention over the course of a conversation defined by its turns
 ax = sns.lineplot(x="n_turns", y="normalised_asymmetry_intention", hue="n_repair", palette=palette, data=results)
+
+# Set the axis
 plt.ylabel("Normalised asymmetry of the intention")
 plt.xlabel("Turns in a conversation")
 ax.axes.get_xaxis().set_visible(False)
@@ -470,10 +388,14 @@ ax.axes.get_xaxis().set_visible(False)
 plt.show()
 
 # Plot the same for the asymmetry of the network
+
 colors = ["#abd9e9", "#74add1", "#4575b4", "#313695"]
+
 results["normalised_asymmetry"] = results["asymmetry_count"]/(results['n_nodes'])
 results["normalised_asymmetry"] = results["normalised_asymmetry"].astype(float)
+
 ax = sns.lineplot(x="n_turns", y="normalised_asymmetry", hue="n_repair", palette=palette, data=results)
+
 plt.ylabel("Normalised asymmetry of the network")
 plt.xlabel("Turns in a conversation")
 ax.axes.get_xaxis().set_visible(False)
@@ -507,19 +429,27 @@ plt.show()
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Plot the utterance length of the producer
+
+# Calculate the utterance length
 utterance_results = results[results["repair request"].isna()]
-utterances = utterance_results["utterance producer"].dropna()
+utterances = utterance_results["utterance speaker"].dropna()
 utterances["length"] = utterances.str.len()
 
+# Plot the counts
 sns.countplot(y="length", data=utterances)
 plt.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------- Course of conversation ------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+
+# Plot the asymmetry of the intention over the course of a conversation for the different times that repair is initiated
+
+# Drop some irrelevant states
 results_state = results[results["state"] != "interpreter initialisation"]
 results_state = results_state[results_state["state"] != "end conversation"]
 
+# Get the states for the different interactions
 conditions = [(results_state['conversation state'] == 0) & (results_state['state'] == "initialisation"),
               (results_state['conversation state'] == 0) & (results_state['state'] == "interpreter update utterance"),
               (results_state['conversation state'] == 0) & (results_state['state'] == "producer update network repair"),
@@ -548,25 +478,33 @@ conditions = [(results_state['conversation state'] == 0) & (results_state['state
               (results_state['conversation state'] == 2) & (results_state['state'] == "interpreter update solution_2")]
 
 values = ['initialisation', 'revision utterance', 'producer update repair', 'revision repair solution',
-          'producer update repair', 'revision repair solution', 'producer update repair', 'revision repair solution', 'initialisation 2', 'revision utterance 2', 'producer update repair 2', 'revision repair solution 2',
-          'producer update repair 2', 'revision repair solution 2', 'producer update repair 2', 'revision repair solution 2', 'initialisation 3', 'revision utterance 3', 'producer update repair 3', 'revision repair solution 3',
-          'producer update repair 3', 'revision repair solution 3', 'producer update repair 3', 'revision repair solution 3']
+          'producer update repair', 'revision repair solution', 'producer update repair', 'revision repair solution',
+          'initialisation 2', 'revision utterance 2', 'producer update repair 2', 'revision repair solution 2',
+          'producer update repair 2', 'revision repair solution 2', 'producer update repair 2',
+          'revision repair solution 2', 'initialisation 3', 'revision utterance 3', 'producer update repair 3',
+          'revision repair solution 3', 'producer update repair 3', 'revision repair solution 3',
+          'producer update repair 3', 'revision repair solution 3']
 results_state['state conversation'] = np.select(conditions, values)
 
+# Drop some irrelevant states
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'producer update repair'].index)
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'producer update repair 2'].index)
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'producer update repair 3'].index)
 results_state = results_state.drop(results_state[results_state['state conversation'] == 'initialisation 3'].index)
 
+# Calculate the asymmetry
 results_state["normalised_asymmetry_network"] = results_state["asymmetry_count"]/results_state["n_nodes"]
 results_state["normalised_asymmetry_network"] = results_state["normalised_asymmetry_network"].astype(float)
 results_state["normalised_asymmetry_intention"] = results_state["asymmetry_intention"]/(results_state['intention'].str.len())
 results_state["normalised_asymmetry_intention"] = results_state["normalised_asymmetry_intention"].astype(float)
 
+# Divide the results into three sets of data for each number of times that repair is initiated
 results_state_0 = results_state[results_state["n_repair"] == 0]
 results_state_1 = results_state[results_state["n_repair"] == 1]
 results_state_2 = results_state[results_state["n_repair"] == 2]
 
+# Plot the three different plots next to each other (how often repair is initiated)
+# Each plot represents the asymmetry of the intention over the course of a conversation
 plt.figure()
 
 plt.subplot(131)

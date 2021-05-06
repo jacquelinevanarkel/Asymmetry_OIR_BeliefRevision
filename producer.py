@@ -2,6 +2,7 @@
 import random
 import itertools
 
+
 class ProducerModel:
 
     def __init__(self, belief_network, intention, repair_request=None):
@@ -22,6 +23,8 @@ class ProducerModel:
         (with an egocentric producer model) it is most similar to the communicative intentions and the utterance should
         be as short as possible. Already communicated nodes can't be communicated again.
         :return: list; the truth values of a (set of) node(s) to be communicated (the other nodes will be set to 'None')
+                 graph; the producer's belief network
+                 int; the similarity of the producer's belief network with the hypothesised interpreter's network
         """
 
         # Get the not (yet) communicated nodes and its combinations of different sizes of (sub)sets
@@ -39,7 +42,7 @@ class ProducerModel:
         combinations = []
 
         # Add all those (sub)sets to a list of combinations
-        for r in range(1, len(not_comm_nodes)+1):
+        for r in range(1, len(not_comm_nodes) + 1):
             combinations.extend(list(itertools.combinations(not_comm_nodes, r)))
 
         # Perform belief revision for every combination and calculate the similarity and divide over the number of nodes
@@ -55,7 +58,7 @@ class ProducerModel:
                 if network_interpreter.nodes[node]['truth_value'] == self.belief_network.nodes[node]['truth_value']:
                     similarity += 1
             similarities.append(similarity)
-            optimisation.append(similarity/len(combination))
+            optimisation.append(similarity / len(combination))
 
         # The utterance is the combination with the highest optimisation
         max_optimisation = max(optimisation)
@@ -73,7 +76,7 @@ class ProducerModel:
     def belief_revision(self, network, communicated_nodes=None):
         """
         Make inferences based on own and communicated beliefs (same function as for interpreter).
-        :return: list; the truth values of a set of inferred nodes
+        :return: graph; the belief network after belief revision
         """
 
         # Add communicated nodes if necessary
@@ -117,6 +120,8 @@ class ProducerModel:
         Confirm/disconfirm the restricted offer and add clarification if needed.
         :return: list; the indices and producer's truth values of the repair request and an additional list of the
         indices and truth values of node(s) when no confirmation could be given, else these lists are empty
+                 int; the similarity of the producer's belief network and the hypothesised interpreter's belief network
+                 graph; the producer's belief network
         """
 
         # Check whether the truth values of repair request match with the producer's belief_network, if not, no

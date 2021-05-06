@@ -223,6 +223,7 @@ def intention_communicated(belief_network_producer, belief_network_interpreter, 
     :param intention: list; list with the indices of the nodes that form the producer's intention
     :return: boolean; whether the intention matches with the corresponding interpreter's nodes
     """
+
     for index in intention:
         if belief_network_producer.nodes[index]['truth_value'] != belief_network_interpreter.nodes[index]['truth_value']:
             return False
@@ -238,7 +239,7 @@ def asymmetry_count(belief_network_producer, belief_network_interpreter, intenti
     :param belief_network_interpreter: graph; the graph containing the relevant nodes (including their truth values and
     types) connected by edges with their constraints as a belief belief_network for the interpreter
     :param intention: list; the list containing the node indices of the intention of the producer
-    :return: int; the asymmetry of the networks
+    :return: int; the asymmetry of (a part of) the networks
     """
 
     # Initialise a count for the asymmetry
