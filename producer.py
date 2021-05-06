@@ -2,14 +2,14 @@
 import random
 import itertools
 
-class SpeakerModel:
+class ProducerModel:
 
     def __init__(self, belief_network, intention, repair_request=None):
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the nodes connected by edges with their constraints
         :param repair_request: list; list of tuples with the nodes (index, truth value) over which repair is asked
-        :param intention: list; list with the indices of the nodes that form the speaker's intention
+        :param intention: list; list with the indices of the nodes that form the producer's intention
         """
 
         self.belief_network = belief_network
@@ -19,7 +19,7 @@ class SpeakerModel:
     def communicate_beliefs(self):
         """
         Communicate a (set of) node(s), which will be chosen such that when a belief revision is performed
-        (with an egocentric listener model) it is most similar to the communicative intentions and the utterance should
+        (with an egocentric producer model) it is most similar to the communicative intentions and the utterance should
         be as short as possible. Already communicated nodes can't be communicated again.
         :return: list; the truth values of a (set of) node(s) to be communicated (the other nodes will be set to 'None')
         """
@@ -47,12 +47,12 @@ class SpeakerModel:
         similarities = []
         for combination in combinations:
             network = self.belief_network.copy()
-            network_listener = self.belief_revision(network, communicated_nodes=combination)
+            network_interpreter = self.belief_revision(network, communicated_nodes=combination)
 
             similarity = 0
             # Calculate similarity
             for node in self.intention:
-                if network_listener.nodes[node]['truth_value'] == self.belief_network.nodes[node]['truth_value']:
+                if network_interpreter.nodes[node]['truth_value'] == self.belief_network.nodes[node]['truth_value']:
                     similarity += 1
             similarities.append(similarity)
             optimisation.append(similarity/len(combination))
@@ -72,7 +72,7 @@ class SpeakerModel:
 
     def belief_revision(self, network, communicated_nodes=None):
         """
-        Make inferences based on own and communicated beliefs (same function as for listener).
+        Make inferences based on own and communicated beliefs (same function as for interpreter).
         :return: list; the truth values of a set of inferred nodes
         """
 
@@ -115,11 +115,11 @@ class SpeakerModel:
     def repair_solution(self):
         """
         Confirm/disconfirm the restricted offer and add clarification if needed.
-        :return: list; the indices and speaker's truth values of the repair request and an additional list of the
+        :return: list; the indices and producer's truth values of the repair request and an additional list of the
         indices and truth values of node(s) when no confirmation could be given, else these lists are empty
         """
 
-        # Check whether the truth values of repair request match with the speaker's belief_network, if not, no
+        # Check whether the truth values of repair request match with the producer's belief_network, if not, no
         # confirmation can be given
         confirmation = True
         for node in self.repair_request:
@@ -127,7 +127,7 @@ class SpeakerModel:
                 confirmation = False
                 break
 
-        # If no confirmation can be given, the speaker communicates their own truth values of the repair request and
+        # If no confirmation can be given, the producer communicates their own truth values of the repair request and
         # gives an additional clarification
         repair = []
         clarification = []

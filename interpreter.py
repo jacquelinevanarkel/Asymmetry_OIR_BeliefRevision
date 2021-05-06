@@ -4,13 +4,13 @@ import random
 import itertools
 
 
-class ListenerModel:
+class InterpreterModel:
 
     def __init__(self, belief_network, communicated_nodes=None):
         """
         Initialisation of class.
         :param belief_network: graph; the graph containing the relevant nodes connected by edges with their constraints
-        :param communicated_nodes: list; a list containing the truth values of the node(s) communicated by the speaker
+        :param communicated_nodes: list; a list containing the truth values of the node(s) communicated by the producer
         """
 
         # Initialise the belief belief_network and the communicated nodes

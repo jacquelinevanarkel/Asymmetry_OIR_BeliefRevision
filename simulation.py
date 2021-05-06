@@ -1,7 +1,7 @@
 # Import packages and functions
 from coherence_networks import CoherenceNetworks
-from listener import ListenerModel
-from speaker import SpeakerModel
+from interpreter import InterpreterModel
+from producer import ProducerModel
 import networkx as nx
 import random
 import pandas as pd
@@ -9,106 +9,106 @@ import multiprocessing
 import pickle
 
 
-def conversation(belief_network_speaker, belief_network_listener, intention):
+def conversation(belief_network_producer, belief_network_interpreter, intention):
     """
-    Simulate one conversation between a speaker and listener, in which the speaker tries to communicate a certain
-    intention to the listener and the listener can initiate repair if needed.
-    :param belief_network_speaker: graph; the graph containing the relevant nodes (including their truth values and
-    types) connected by edges with their constraints as a belief belief_network for the speaker
-    :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
-    types) connected by edges with their constraints as a belief belief_network for the listener
-    :param intention: list; list with the indices of the nodes that form the speaker's intention
+    Simulate one conversation between a producer and interpreter, in which the producer tries to communicate a certain
+    intention to the interpreter and the interpreter can initiate repair if needed.
+    :param belief_network_producer: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the producer
+    :param belief_network_interpreter: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the interpreter
+    :param intention: list; list with the indices of the nodes that form the producer's intention
     :return: dataframe; pandas dataframe containing the results of the conversation
     """
 
     # Initialise a dataframe to store the results in
     results = pd.DataFrame(
-        columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
-                 "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
-                 "conversation state", "similarity", "utterance speaker", "repair request",
+        columns=["nodes producer", "nodes interpreter", "edges producer", "edges interpreter", "intention_communicated",
+                 "n_repair", "coherence producer", "coherence interpreter", "n_interactions", "confirmation?",
+                 "conversation state", "similarity", "utterance producer", "repair request",
                  "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention", "state"])
 
-    # print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
-    # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+    # print("producer belief_network: \n", belief_network_producer.nodes(data=True))
+    # print("interpreter belief_network: \n", belief_network_interpreter.nodes(data=True))
 
-    # Initialise the listener belief network in order to make inferences before the speaker communicates something
-    # Listener changes beliefs accordingly
-    repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy()).belief_revision()
+    # Initialise the interpreter belief network in order to make inferences before the producer communicates something
+    # interpreter changes beliefs accordingly
+    repair_request, belief_network_interpreter = InterpreterModel(belief_network_interpreter.copy()).belief_revision()
 
-    # Initialise the speaker belief network
-    belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention).\
-        belief_revision(belief_network_speaker.copy())
+    # Initialise the producer belief network
+    belief_network_producer = ProducerModel(belief_network_producer.copy(), intention).\
+        belief_revision(belief_network_producer.copy())
 
     # Initialise a count for the number of turns taken in a conversation
     t = 0
 
     # Store the starting conditions in the results
-    results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                 belief_network_listener.nodes(data=True),
-                                 belief_network_speaker.edges(data=True),
-                                 belief_network_listener.edges(data=True), None, None,
-                                 coherence(belief_network_speaker),
-                                 coherence(belief_network_listener),
+    results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                 belief_network_interpreter.nodes(data=True),
+                                 belief_network_producer.edges(data=True),
+                                 belief_network_interpreter.edges(data=True), None, None,
+                                 coherence(belief_network_producer),
+                                 coherence(belief_network_interpreter),
                                  None, None, "Start", None, None, None, False, intention,
-                                 asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                 asymmetry_count(belief_network_speaker, belief_network_listener, intention=intention),
-                                 "listener initialisation"]
+                                 asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                 asymmetry_count(belief_network_producer, belief_network_interpreter, intention=intention),
+                                 "interpreter initialisation"]
 
     # A conversation can consist of a maximum of the number of nodes interactions
     # Initialise a count for the number of times repair is initiated in a conversation
     r = 0
-    for i in range(belief_network_speaker.number_of_nodes()):
+    for i in range(belief_network_producer.number_of_nodes()):
 
-        # Speaker communicates something
-        utterance, belief_network_speaker, similarity = SpeakerModel(belief_network_speaker.copy(),
-                                                                     intention).communicate_beliefs()
+        # producer communicates something
+        utterance, belief_network_producer, similarity = ProducerModel(belief_network_producer.copy(),
+                                                                       intention).communicate_beliefs()
         t += 1
-        # print("Speaker belief_network: \n", belief_network_speaker.nodes(data=True))
-        # print("Speaker communicates: ", utterance)
+        # print("producer belief_network: \n", belief_network_producer.nodes(data=True))
+        # print("producer communicates: ", utterance)
 
         # Store results
-        results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                     belief_network_listener.nodes(data=True),
-                                     belief_network_speaker.edges(data=True),
-                                     belief_network_listener.edges(data=True), None, None,
-                                     coherence(belief_network_speaker),
-                                     coherence(belief_network_listener),
+        results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                     belief_network_interpreter.nodes(data=True),
+                                     belief_network_producer.edges(data=True),
+                                     belief_network_interpreter.edges(data=True), None, None,
+                                     coherence(belief_network_producer),
+                                     coherence(belief_network_interpreter),
                                      None, None, i, similarity, utterance, None, False, intention,
-                                     asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                     asymmetry_count(belief_network_speaker, belief_network_listener,
+                                     asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                     asymmetry_count(belief_network_producer, belief_network_interpreter,
                                                      intention=intention), "initialisation"]
 
-        # Stop if the speaker has nothing left to say
+        # Stop if the producer has nothing left to say
         if not utterance:
             break
 
-        # Listener changes beliefs accordingly and initiates repair if necessary
-        repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
-                                                                communicated_nodes=utterance).belief_revision()
+        # interpreter changes beliefs accordingly and initiates repair if necessary
+        repair_request, belief_network_interpreter = InterpreterModel(belief_network_interpreter.copy(),
+                                                                      communicated_nodes=utterance).belief_revision()
 
-        # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+        # print("interpreter belief_network: \n", belief_network_interpreter.nodes(data=True))
         # print("Repair request: ", repair_request)
 
         # Store results
-        results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                     belief_network_listener.nodes(data=True),
-                                     belief_network_speaker.edges(data=True),
-                                     belief_network_listener.edges(data=True), None, None,
-                                     coherence(belief_network_speaker),
-                                     coherence(belief_network_listener),
+        results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                     belief_network_interpreter.nodes(data=True),
+                                     belief_network_producer.edges(data=True),
+                                     belief_network_interpreter.edges(data=True), None, None,
+                                     coherence(belief_network_producer),
+                                     coherence(belief_network_interpreter),
                                      None, None, i, None, None, repair_request, False, intention,
-                                     asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                     asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                     intention=intention), "listener update utterance"]
+                                     asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                     asymmetry_count(belief_network_producer, belief_network_interpreter,
+                                                     intention=intention), "interpreter update utterance"]
 
-        # If the listener initiates repair the speaker gives a repair solution
+        # If the interpreter initiates repair the producer gives a repair solution
         clarification = -1
         while repair_request:
             clarification += 1
             r += 1
             t += 1
-            repair_solution, similarity, belief_network_speaker = SpeakerModel(belief_network_speaker.copy(), intention,
-                                                                               repair_request=repair_request)\
+            repair_solution, similarity, belief_network_producer = ProducerModel(belief_network_producer.copy(), intention,
+                                                                                 repair_request=repair_request)\
                 .repair_solution()
             t += 1
             # print("Repair solution: ", repair_solution)
@@ -120,136 +120,136 @@ def conversation(belief_network_speaker, belief_network_listener, intention):
             # Store results
 
             if clarification == 0:
-                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                             belief_network_listener.nodes(data=True),
-                                             belief_network_speaker.edges(data=True),
-                                             belief_network_listener.edges(data=True), None, None,
-                                             coherence(belief_network_speaker),
-                                             coherence(belief_network_listener),
+                results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                             belief_network_interpreter.nodes(data=True),
+                                             belief_network_producer.edges(data=True),
+                                             belief_network_interpreter.edges(data=True), None, None,
+                                             coherence(belief_network_producer),
+                                             coherence(belief_network_interpreter),
                                              None, confirmation, i, similarity, repair_solution,
                                              repair_request, False, intention,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                             intention=intention), "speaker update network repair"]
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter,
+                                                             intention=intention), "producer update network repair"]
 
-                # The listener performs belief revision according to the repair solution from the speaker
-                repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
-                                                                        communicated_nodes=repair_solution) \
+                # The interpreter performs belief revision according to the repair solution from the producer
+                repair_request, belief_network_interpreter = InterpreterModel(belief_network_interpreter.copy(),
+                                                                              communicated_nodes=repair_solution) \
                     .belief_revision()
-                # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+                # print("interpreter belief_network: \n", belief_network_interpreter.nodes(data=True))
                 # print("Repair request after repair solution: ", repair_request)
 
                 # Store results
-                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                             belief_network_listener.nodes(data=True),
-                                             belief_network_speaker.edges(data=True),
-                                             belief_network_listener.edges(data=True), None, None,
-                                             coherence(belief_network_speaker),
-                                             coherence(belief_network_listener),
+                results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                             belief_network_interpreter.nodes(data=True),
+                                             belief_network_producer.edges(data=True),
+                                             belief_network_interpreter.edges(data=True), None, None,
+                                             coherence(belief_network_producer),
+                                             coherence(belief_network_interpreter),
                                              None, None, i, None, None,
                                              repair_request, False, intention,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                             intention=intention), "listener update solution"]
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter,
+                                                             intention=intention), "interpreter update solution"]
             else:
-                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                             belief_network_listener.nodes(data=True),
-                                             belief_network_speaker.edges(data=True),
-                                             belief_network_listener.edges(data=True), None, None,
-                                             coherence(belief_network_speaker),
-                                             coherence(belief_network_listener),
+                results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                             belief_network_interpreter.nodes(data=True),
+                                             belief_network_producer.edges(data=True),
+                                             belief_network_interpreter.edges(data=True), None, None,
+                                             coherence(belief_network_producer),
+                                             coherence(belief_network_interpreter),
                                              None, confirmation, i, similarity, repair_solution,
                                              repair_request, False, intention,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                             intention=intention), "speaker update network repair_" + str(clarification)]
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter,
+                                                             intention=intention), "producer update network repair_" + str(clarification)]
 
-                # The listener performs belief revision according to the repair solution from the speaker
-                repair_request, belief_network_listener = ListenerModel(belief_network_listener.copy(),
-                                                                        communicated_nodes=repair_solution) \
+                # The interpreter performs belief revision according to the repair solution from the producer
+                repair_request, belief_network_interpreter = InterpreterModel(belief_network_interpreter.copy(),
+                                                                              communicated_nodes=repair_solution) \
                     .belief_revision()
-                # print("Listener belief_network: \n", belief_network_listener.nodes(data=True))
+                # print("interpreter belief_network: \n", belief_network_interpreter.nodes(data=True))
                 # print("Repair request after repair solution: ", repair_request)
 
                 # Store results
-                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                             belief_network_listener.nodes(data=True),
-                                             belief_network_speaker.edges(data=True),
-                                             belief_network_listener.edges(data=True), None, None,
-                                             coherence(belief_network_speaker),
-                                             coherence(belief_network_listener),
+                results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                             belief_network_interpreter.nodes(data=True),
+                                             belief_network_producer.edges(data=True),
+                                             belief_network_interpreter.edges(data=True), None, None,
+                                             coherence(belief_network_producer),
+                                             coherence(belief_network_interpreter),
                                              None, None, i, None, None,
                                              repair_request, False, intention,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener,
-                                                             intention=intention), "listener update solution_" + str(clarification)]
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter,
+                                                             intention=intention), "interpreter update solution_" + str(clarification)]
 
-        # If the listener does not initiate repair and the similarity is maximised the conversation is ended
+        # If the interpreter does not initiate repair and the similarity is maximised the conversation is ended
         max_sim_end = False
         if not repair_request:
             maximum = len(intention)
             if similarity == maximum:
                 max_sim_end = True
                 # Store results
-                results.loc[len(results)] = [belief_network_speaker.nodes(data=True),
-                                             belief_network_listener.nodes(data=True),
-                                             belief_network_speaker.edges(data=True),
-                                             belief_network_listener.edges(data=True), None,
+                results.loc[len(results)] = [belief_network_producer.nodes(data=True),
+                                             belief_network_interpreter.nodes(data=True),
+                                             belief_network_producer.edges(data=True),
+                                             belief_network_interpreter.edges(data=True), None,
                                              None,
-                                             coherence(belief_network_speaker),
-                                             coherence(belief_network_listener),
+                                             coherence(belief_network_producer),
+                                             coherence(belief_network_interpreter),
                                              None, None, i, similarity, None,
                                              repair_request, max_sim_end, intention,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener), t,
-                                             asymmetry_count(belief_network_speaker, belief_network_listener,
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter), t,
+                                             asymmetry_count(belief_network_producer, belief_network_interpreter,
                                                              intention=intention), "end conversation"]
                 break
 
     # Add conversation info to results
-    results.intention_communicated = intention_communicated(belief_network_speaker, belief_network_listener, intention)
+    results.intention_communicated = intention_communicated(belief_network_producer, belief_network_interpreter, intention)
     results.n_repair = r
     results.n_interactions = i + 1
 
     return results
 
 
-def intention_communicated(belief_network_speaker, belief_network_listener, intention):
+def intention_communicated(belief_network_producer, belief_network_interpreter, intention):
     """
-    Returns whether the speaker's intention matches with the listener's nodes.
-    :param belief_network_speaker: graph; the graph containing the relevant nodes (including their truth values and
-    types) connected by edges with their constraints as a belief belief_network for the speaker
-    :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
-    types) connected by edges with their constraints as a belief belief_network for the listener
-    :param intention: list; list with the indices of the nodes that form the speaker's intention
-    :return: boolean; whether the intention matches with the corresponding listener's nodes
+    Returns whether the producer's intention matches with the interpreter's nodes.
+    :param belief_network_producer: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the producer
+    :param belief_network_interpreter: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the interpreter
+    :param intention: list; list with the indices of the nodes that form the producer's intention
+    :return: boolean; whether the intention matches with the corresponding interpreter's nodes
     """
     for index in intention:
-        if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+        if belief_network_producer.nodes[index]['truth_value'] != belief_network_interpreter.nodes[index]['truth_value']:
             return False
 
     return True
 
 
-def asymmetry_count(belief_network_speaker, belief_network_listener, intention=None):
+def asymmetry_count(belief_network_producer, belief_network_interpreter, intention=None):
     """
-    Counts the asymmetry using the Hamming distance between the belief network of the speaker and listener.
-    :param belief_network_speaker: graph; the graph containing the relevant nodes (including their truth values and
-    types) connected by edges with their constraints as a belief belief_network for the speaker
-    :param belief_network_listener: graph; the graph containing the relevant nodes (including their truth values and
-    types) connected by edges with their constraints as a belief belief_network for the listener
-    :param intention: list; the list containing the node indices of the intention of the speaker
+    Counts the asymmetry using the Hamming distance between the belief network of the producer and interpreter.
+    :param belief_network_producer: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the producer
+    :param belief_network_interpreter: graph; the graph containing the relevant nodes (including their truth values and
+    types) connected by edges with their constraints as a belief belief_network for the interpreter
+    :param intention: list; the list containing the node indices of the intention of the producer
     :return: int; the asymmetry of the networks
     """
 
     # Initialise a count for the asymmetry
     i = 0
     if not intention:
-        for index in range(belief_network_speaker.number_of_nodes()):
-            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+        for index in range(belief_network_producer.number_of_nodes()):
+            if belief_network_producer.nodes[index]['truth_value'] != belief_network_interpreter.nodes[index]['truth_value']:
                 i += 1
     else:
         for index in intention:
-            if belief_network_speaker.nodes[index]['truth_value'] != belief_network_listener.nodes[index]['truth_value']:
+            if belief_network_producer.nodes[index]['truth_value'] != belief_network_interpreter.nodes[index]['truth_value']:
                 i += 1
 
     return i
@@ -290,14 +290,14 @@ def simulation(n_nodes, n_runs):
 
     # Initialise a dataframe to store the results in
     results = pd.DataFrame(
-        columns=["nodes speaker", "nodes listener", "edges speaker", "edges listener", "intention_communicated",
-                 "n_repair", "coherence speaker", "coherence listener", "n_interactions", "confirmation?",
-                 "conversation state", "similarity", "utterance speaker", "repair request",
+        columns=["nodes producer", "nodes interpreter", "edges producer", "edges interpreter", "intention_communicated",
+                 "n_repair", "coherence producer", "coherence interpreter", "n_interactions", "confirmation?",
+                 "conversation state", "similarity", "utterance producer", "repair request",
                  "conversation ended max sim", "intention", "asymmetry_count", "n_turns", "asymmetry_intention", "state"])
 
     # Initialise empty list to store the different arguments in
-    list_speaker_network = []
-    list_listener_network = []
+    list_producer_network = []
+    list_interpreter_network = []
     list_intentions = []
     list_n_nodes = []
     list_amount_edges = []
@@ -317,20 +317,20 @@ def simulation(n_nodes, n_runs):
                 create_graph()
 
             # Then the possible combinations of the degree of overlap and asymmetry are used to initialise the
-            # network for the speaker and listener
+            # network for the producer and interpreter
             degree = [0, 50, 100]
             for i in degree:
                 degree_overlap = i
                 for n in degree:
                     degree_asymmetry = n
-                    belief_network_speaker, belief_network_listener = initialisation_networks(belief_network,
+                    belief_network_producer, belief_network_interpreter = initialisation_networks(belief_network,
                                                                                               degree_overlap,
                                                                                               degree_asymmetry)
 
-                    # Randomly generate an intention for the speaker
+                    # Randomly generate an intention for the producer
                     possible_intention = []
                     for index in range(n_nodes):
-                        if belief_network_speaker.nodes[index]['type'] == 'inf':
+                        if belief_network_producer.nodes[index]['type'] == 'inf':
                             possible_intention.append(index)
                     #print(possible_intention)
 
@@ -339,8 +339,8 @@ def simulation(n_nodes, n_runs):
 
 
                     # Collect arguments
-                    list_speaker_network.append(belief_network_speaker)
-                    list_listener_network.append(belief_network_listener)
+                    list_producer_network.append(belief_network_producer)
+                    list_interpreter_network.append(belief_network_interpreter)
                     list_intentions.append(intention)
 
                     # Collect manipulations to store in dataframe
@@ -352,7 +352,7 @@ def simulation(n_nodes, n_runs):
 
     # Run a conversation for the specified parameter settings
     pool = multiprocessing.Pool()
-    arguments = zip(list_speaker_network, list_listener_network, list_intentions)
+    arguments = zip(list_producer_network, list_interpreter_network, list_intentions)
     arg_list = list(arguments)
     result = pool.starmap(conversation, arg_list)
     for index in range(len(list_intentions)):
@@ -377,14 +377,14 @@ def simulation(n_nodes, n_runs):
 
 def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     """
-    Initialise the belief networks for the speaker and listener according to the degree of overlap and asymmetry.
+    Initialise the belief networks for the producer and interpreter according to the degree of overlap and asymmetry.
     :param belief_network: graph; the graph containing the relevant nodes connected by edges with their constraints as a
-    belief network for the speaker and listener
+    belief network for the producer and interpreter
     :param degree_overlap: int; either 0 (no overlap), 50 (50% overlap), or 100 (complete overlap) of the own beliefs of
-    the speaker and listener
+    the producer and interpreter
     :param degree_asymmetry: int; either 0 (no asymmetry), 50 (50% asymmetry), or 100 (100% asymmetry) of the
-    overlapping own beliefs of the speaker and listener
-    :return: graph; the belief networks for the speaker and listener
+    overlapping own beliefs of the producer and interpreter
+    :return: graph; the belief networks for the producer and interpreter
     """
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -393,16 +393,16 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
     # First the degree of overlap between the sets of own nodes is set
     n_nodes = belief_network.number_of_nodes()
     if degree_overlap == 100:
-        # Choose randomly for the speaker which nodes are own beliefs and inferred beliefs with a minimum of 1 own
+        # Choose randomly for the producer which nodes are own beliefs and inferred beliefs with a minimum of 1 own
         # belief node and a maximum of 75% of the nodes
-        node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
-        while node_type_speaker.count("own") > (0.75 * n_nodes):
-            node_type_speaker = random.choices(["own", "inf"], k=n_nodes)
-        if "own" not in node_type_speaker:
-            index = random.randrange(len(node_type_speaker))
-            node_type_speaker[index] = "own"
-        # Copy the types for the listener as the overlap is 100%
-        node_type_listener = node_type_speaker
+        node_type_producer = random.choices(["own", "inf"], k=n_nodes)
+        while node_type_producer.count("own") > (0.75 * n_nodes):
+            node_type_producer = random.choices(["own", "inf"], k=n_nodes)
+        if "own" not in node_type_producer:
+            index = random.randrange(len(node_type_producer))
+            node_type_producer[index] = "own"
+        # Copy the types for the interpreter as the overlap is 100%
+        node_type_interpreter = node_type_producer
     elif degree_overlap == 50:
         # Maximum of 60% can be own beliefs: first randomly choose a percentage under 60 and then randomly choose the
         # corresponding amount of indices to put 'own' in
@@ -412,39 +412,39 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
             percentage = random.randint(1, 60)
             k = int((percentage / 100) * n_nodes)
 
-        # Here the indices for the speaker's own beliefs are randomly chosen
-        indices_speaker_own = random.sample(list(range(n_nodes)), k=k)
+        # Here the indices for the producer's own beliefs are randomly chosen
+        indices_producer_own = random.sample(list(range(n_nodes)), k=k)
 
-        # Construct the speaker's list of node types
-        node_type_speaker = ["own" if n in indices_speaker_own else "inf" for n in range(n_nodes)]
+        # Construct the producer's list of node types
+        node_type_producer = ["own" if n in indices_producer_own else "inf" for n in range(n_nodes)]
 
-        # Take half of the indices of the speaker's own beliefs for the speaker
-        indices_own_shared = random.sample(indices_speaker_own, k=int(0.5 * len(indices_speaker_own)))
+        # Take half of the indices of the producer's own beliefs for the producer
+        indices_own_shared = random.sample(indices_producer_own, k=int(0.5 * len(indices_producer_own)))
 
-        # Set these own beliefs in the listener's list of node types
-        node_type_listener = ["own" if n in indices_own_shared else None for n in range(n_nodes)]
+        # Set these own beliefs in the interpreter's list of node types
+        node_type_interpreter = ["own" if n in indices_own_shared else None for n in range(n_nodes)]
 
-        # For the other speaker's own beliefs the listener needs to have inferred beliefs
-        for index in indices_speaker_own:
+        # For the other producer's own beliefs the interpreter needs to have inferred beliefs
+        for index in indices_producer_own:
             if index not in indices_own_shared:
-                node_type_listener[index] = "inf"
+                node_type_interpreter[index] = "inf"
 
-        # The own belief set needs to be equal in size for speaker and listener
-        # Count how many own beliefs the speaker has
-        n_own = node_type_speaker.count("own")
+        # The own belief set needs to be equal in size for producer and interpreter
+        # Count how many own beliefs the producer has
+        n_own = node_type_producer.count("own")
 
-        # Count how many own beliefs you still need to set for your listener
+        # Count how many own beliefs you still need to set for your interpreter
         n_own_left = n_own - len(indices_own_shared)
 
-        # See which indices are left for the listener to set the own beliefs for
-        indices_own_left = [i for i in range(len(node_type_listener)) if node_type_listener[i] is None]
+        # See which indices are left for the interpreter to set the own beliefs for
+        indices_own_left = [i for i in range(len(node_type_interpreter)) if node_type_interpreter[i] is None]
 
-        # Randomly choose which nodes will be the left over own beliefs for the listener
+        # Randomly choose which nodes will be the left over own beliefs for the interpreter
         indices_own = random.sample(indices_own_left, k=n_own_left)
 
-        # And set the last own beliefs of the listener
+        # And set the last own beliefs of the interpreter
         for index in indices_own:
-            node_type_listener[index] = "own"
+            node_type_interpreter[index] = "own"
     elif degree_overlap == 0:
         # A maximum of half of the beliefs can be own in order not to have any overlap and you need at least one own
         # belief
@@ -453,66 +453,66 @@ def initialisation_networks(belief_network, degree_overlap, degree_asymmetry):
             percentage = random.randint(1, 50)
             k = int((percentage / 100) * n_nodes)
 
-        # Here the indices for the speaker's own beliefs are randomly chosen
-        indices_speaker_own = random.sample(list(range(n_nodes)), k=k)
+        # Here the indices for the producer's own beliefs are randomly chosen
+        indices_producer_own = random.sample(list(range(n_nodes)), k=k)
 
-        # Construct the speaker's list of node types
-        node_type_speaker = ["own" if n in indices_speaker_own else "inf" for n in range(n_nodes)]
+        # Construct the producer's list of node types
+        node_type_producer = ["own" if n in indices_producer_own else "inf" for n in range(n_nodes)]
 
-        # Get the indices for the speaker's inferred node types
-        indices_speaker_inf = [i for i in range(len(node_type_speaker)) if node_type_speaker[i] == "inf"]
+        # Get the indices for the producer's inferred node types
+        indices_producer_inf = [i for i in range(len(node_type_producer)) if node_type_producer[i] == "inf"]
 
-        # Get the number of own beliefs for the listener according to the speaker
-        n_own_speaker = len(node_type_speaker) - len(indices_speaker_inf)
+        # Get the number of own beliefs for the interpreter according to the producer
+        n_own_producer = len(node_type_producer) - len(indices_producer_inf)
 
-        # Randomly choose which nodes will be the own beliefs for the listener (i.e., where the speaker has inferred
+        # Randomly choose which nodes will be the own beliefs for the interpreter (i.e., where the producer has inferred
         # nodes)
-        indices_own_listener = random.sample(indices_speaker_inf, k=n_own_speaker)
+        indices_own_interpreter = random.sample(indices_producer_inf, k=n_own_producer)
 
-        # Set the node types for the listener
-        node_type_listener = ["own" if i in indices_own_listener else "inf" for i in range(len(node_type_speaker))]
+        # Set the node types for the interpreter
+        node_type_interpreter = ["own" if i in indices_own_interpreter else "inf" for i in range(len(node_type_producer))]
 
     # ------------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------- Truth values ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    # Independently generate the truth values for the nodes for the speaker and listener
-    truth_value_speaker = random.choices([True, False], k=n_nodes)
-    truth_value_listener = random.choices([True, False], k=n_nodes)
+    # Independently generate the truth values for the nodes for the producer and interpreter
+    truth_value_producer = random.choices([True, False], k=n_nodes)
+    truth_value_interpreter = random.choices([True, False], k=n_nodes)
 
     # Create a list which contains all the indices of the overlapping own beliefs
     indices_own_shared = []
-    for index in range(len(node_type_speaker)):
-        if node_type_speaker[index] == node_type_listener[index] and node_type_speaker[index] == "own":
+    for index in range(len(node_type_producer)):
+        if node_type_producer[index] == node_type_interpreter[index] and node_type_producer[index] == "own":
             indices_own_shared.append(index)
 
     # Make the truth values of the overlapping own beliefs the same
     for index in indices_own_shared:
-        if truth_value_speaker[index] != truth_value_listener[index]:
-            truth_value_listener[index] = truth_value_speaker[index]
-    # If the degree of asymmetry is 100, change all the listener's overlapping own truth values to the opposite
-    # of the speaker's
+        if truth_value_producer[index] != truth_value_interpreter[index]:
+            truth_value_interpreter[index] = truth_value_producer[index]
+    # If the degree of asymmetry is 100, change all the interpreter's overlapping own truth values to the opposite
+    # of the producer's
     if degree_asymmetry == 100:
         for index in indices_own_shared:
-            truth_value_listener[index] = not truth_value_speaker[index]
-    # If the degree of asymmetry is 50, change half of the listener's overlapping own truth values to the opposite
-    # of the speaker's
+            truth_value_interpreter[index] = not truth_value_producer[index]
+    # If the degree of asymmetry is 50, change half of the interpreter's overlapping own truth values to the opposite
+    # of the producer's
     if degree_asymmetry == 50:
         k = int(len(indices_own_shared) / 2)
         flip_indices = random.sample(indices_own_shared, k=k)
         for index in flip_indices:
-            truth_value_listener[index] = not truth_value_speaker[index]
+            truth_value_interpreter[index] = not truth_value_producer[index]
 
     # ------------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------- Initialisation ---------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-    # Initialisation of speaker and listener belief_network
-    belief_network_speaker = initialisation_network(belief_network, node_type_speaker, truth_value_speaker,
-                                                    "speaker")
-    belief_network_listener = initialisation_network(belief_network.copy(), node_type_listener,
-                                                     truth_value_listener,
-                                                     "listener")
-    return belief_network_speaker, belief_network_listener
+    # Initialisation of producer and interpreter belief_network
+    belief_network_producer = initialisation_network(belief_network, node_type_producer, truth_value_producer,
+                                                    "producer")
+    belief_network_interpreter = initialisation_network(belief_network.copy(), node_type_interpreter,
+                                                     truth_value_interpreter,
+                                                     "interpreter")
+    return belief_network_producer, belief_network_interpreter
 
 
 def initialisation_network(belief_network, node_type, node_truth_value, agent):
@@ -520,7 +520,7 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
     Initialisation of belief belief_network with the starting node types and truth values for the nodes.
     :param agent: string; the agent type for the network
     :param belief_network: graph; the graph containing the relevant nodes connected by edges with their
-    constraints as a belief network for the listener and speaker
+    constraints as a belief network for the interpreter and producer
     :param node_type: list; a list containing the types of all the nodes in the belief_network (None if not specified)
     :param node_truth_value: list; a list containing the truth values of (some of) the nodes in the belief_network
     :return: graph; the belief network with its node types and truth values
@@ -534,9 +534,9 @@ def initialisation_network(belief_network, node_type, node_truth_value, agent):
         belief_network.nodes[i]['truth_value'] = node_truth_value[i]
         belief_network.nodes[i]['type'] = node_type[i]
 
-    # If the agent is a listener a node attribute should be initialised whether repair was already asked over that node
-    if agent == "listener":
-        # Initialise all the nodes of the listener with repair set to false as repair has not been used yet
+    # If the agent is a interpreter a node attribute should be initialised whether repair was already asked over that node
+    if agent == "interpreter":
+        # Initialise all the nodes of the interpreter with repair set to false as repair has not been used yet
         nx.set_node_attributes(belief_network, False, "repair")
 
     return belief_network
