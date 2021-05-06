@@ -1,5 +1,4 @@
-## How do people resolve misunderstanding in conversation through repair?
-### Introducing a framework built on belief revision and coherence
+## How do people resolve misunderstanding in conversation through repair? Introducing a framework built on belief revision and coherence
 
 The implementation of the (i) model, (ii) the simulations and (iii) the results described in this master's thesis can be found here.
 
