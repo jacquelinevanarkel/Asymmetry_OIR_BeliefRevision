@@ -1,6 +1,6 @@
 ## How do people resolve misunderstanding in conversation through repair? Introducing a framework built on belief revision and coherence
 
-The implementation of the **(i) model**, **(ii) the simulations** and **(iii) the results** described in this master's thesis can be found here.
+The implementation of the **(i) model**, **(ii) the simulations** and **(iii) the results** described in this master's thesis can be found here. In order to access the data resulting from the simulations run, I redirect you to [this OSF page of this project](https://osf.io/xah9u/?view_only=3a4737cb6be3461f853501ed11c0b704).
 
 (i) The implementation of **the model** consists out of three files:
 1. **coherence_networks.py**: the implementation for generating coherence networks as belief networks for the agents.
